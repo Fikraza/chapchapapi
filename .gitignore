@@ -1,0 +1,56 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# dotenv environment variables
+.env
+.env.*.local
+
+# Build output
+dist/
+build/
+out/
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm/
+
+# Local development
+*.local
+.vscode/
+.idea/
+
+# Testing
+coverage/
+.jest/
+
+# Dependency directories
+jspm_packages/
+
+# Optional lock files (uncomment if not needed)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# PM2 process files
+.pids/
+*.pid
+*.seed
+
+# Next.js / Nuxt.js output (if used)
+.next/
+.nuxt/
