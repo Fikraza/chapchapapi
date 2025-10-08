@@ -1,0 +1,19 @@
+{
+  "name": "chapchapapi",
+  "version": "1.0.0",
+  "description": "A Node.js CLI app",
+  "bin": {
+    "chapchapapi": "./index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "@inquirer/input": "^3.0.0",
+    "@inquirer/prompts": "^7.5.3",
+    "chalk": "^5.4.1"
+  }
+}
