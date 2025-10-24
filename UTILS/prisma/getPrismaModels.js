@@ -87,7 +87,13 @@ function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
     let fieldItemObj = prismaDict[convertedType];
 
     if (!fieldItemObj) {
-      include[convertedType] = true;
+      if (
+        convertedType &&
+        !convertedType?.includes("_enum") &&
+        !hasSpecialOrNumbers(convertedType)
+      ) {
+        include[convertedType] = true;
+      }
       continue;
     }
 
@@ -124,6 +130,11 @@ function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
 function getInsideParentheses(str) {
   const match = str.match(/\((.*)\)/);
   return match ? match[1].trim() : null;
+}
+
+function hasSpecialOrNumbers(str) {
+  // Matches any number (0–9) OR any non-alphabetic character
+  return /[^a-zA-Z]/.test(str);
 }
 
 module.exports = getPrismaModels;
