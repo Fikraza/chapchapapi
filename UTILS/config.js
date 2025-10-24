@@ -12,6 +12,21 @@ function baseFolderSetup() {
   }
 }
 
+function jsonFileToObj(file_path) {
+  if (!fs.existsSync(file_path)) {
+    return null;
+  }
+  const ext = path.extname(file_path);
+
+  if (ext !== ".json") {
+    return null;
+  }
+
+  const jsonContent = fs.readFileSync(file_path, "utf-8");
+  const jsonObj = JSON.parse(jsonContent);
+  return jsonObj;
+}
+
 function getConfigPath() {
   const cwd = process.cwd();
   const config = path.join(cwd, config_file_path);
@@ -21,24 +36,11 @@ function getConfigPath() {
 
 function getConfigObject() {
   try {
-    const cwd = process.cwd();
+    const config_file_path = getConfigPath();
 
-    const configPath = getConfigPath();
+    const jsonObj = jsonFileToObj(config_file_path);
 
-    if (!fs.existsSync(configPath)) {
-      return null;
-    }
-    const ext = path.extname(filePath);
-
-    if (ext !== ".json") {
-      return null;
-    }
-
-    const jsonContent = fs.readFileSync(configPath, "utf-8");
-
-    const config = JSON.parse(jsonContent);
-
-    return config;
+    return jsonObj;
   } catch (e) {
     return null;
   }
@@ -91,6 +93,27 @@ function updateConfigFile(newConfigFields) {
   fs.writeFileSync(config_file_path, JSON.stringify(newConfig, null, 2));
 }
 
+function getStructurePath() {
+  const cwd = process.cwd();
+  const config = path.join(cwd, structure_file_path);
+
+  return config;
+}
+
+function getStructureObject() {
+  let structure_path = getStructurePath();
+  if (!structure_path) {
+    return null;
+  }
+
+  let obj = jsonFileToObj(structure_path);
+
+  if (!obj) {
+    return null;
+  }
+  return obj;
+}
+
 module.exports = {
   getConfigPath,
   getPrismaFilePath,
@@ -98,4 +121,6 @@ module.exports = {
   getPackageJsonPath,
   projectIsModuleBased,
   updateConfigFile,
+  jsonFileToObj,
+  getStructureObject,
 };

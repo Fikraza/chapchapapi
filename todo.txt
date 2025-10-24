@@ -51,3 +51,5 @@ STEP10:MINIO<UPCOMING>
 STEP11:UTILS:<>
 
 
+
+list candidate by team and by recruitment center

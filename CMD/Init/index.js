@@ -14,7 +14,7 @@ const cliMessage = require("./../../UTILS/cliMessage");
 
 const getBaseFilePaths = require("./getBaseFilePaths");
 
-async function Init(obj) {
+async function Init() {
   const cwd = process.cwd();
 
   const baseFilePaths = getBaseFilePaths();
@@ -49,7 +49,6 @@ async function Init(obj) {
   }
 
   const targetPath = path.resolve(baseFolder);
-  const relativePath = path.relative(cwd, targetPath);
 
   if (!fs.existsSync(targetPath)) {
     fs.mkdirSync(targetPath, { recursive: true });
@@ -77,7 +76,7 @@ async function Init(obj) {
   let moduleBase = projectIsModuleBased(cwd);
 
   let configObj = {
-    prisma: baseFilePaths.prisma_file_path,
+    prisma: "prisma/schema.prisma",
     type: moduleBase,
     fieldSkip,
   };

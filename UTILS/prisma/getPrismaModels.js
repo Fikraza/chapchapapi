@@ -1,0 +1,129 @@
+const fs = require("fs");
+const path = require("path");
+const { getConfigObject } = require("../config");
+const prismaDict = require("./prismaDict");
+const metaInfoDict = require("./metaInfoDict");
+
+async function getPrismaModels() {
+  const prisma_file_path = getConfigObject().prisma;
+  const configObj = getConfigObject();
+
+  const cwd = process.cwd();
+
+  let prisma_file = path.join(cwd, prisma_file_path);
+  console.log(prisma_file);
+  if (!fs.existsSync(prisma_file)) {
+    return null;
+  }
+
+  const data = fs.readFileSync(prisma_file, "utf8");
+
+  const lines = data.split("\n");
+
+  const modelStrObj = getModelStrObj({ lines });
+
+  // console.log(configObj);
+
+  //console.log(modelStrObj);
+
+  const modelStrObjKeys = Object.keys(modelStrObj);
+  const model = {};
+
+  for (let i = 0; i < modelStrObjKeys.length; i++) {
+    let modelName = modelStrObjKeys[i];
+    let fieldArray = modelStrObj[modelName];
+
+    let fields = {};
+    let include = {};
+
+    fieldObjectGen({ fieldArray, configObj, fields, include });
+    model[modelName] = { field: fields, include };
+  }
+  console.log(model);
+}
+
+function getModelStrObj({ lines }) {
+  const modelStrObj = {};
+  let activeModel = "";
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]?.trim()?.replace(/\s+/g, " ");
+
+    if (line.includes("model") && line.includes("{")) {
+      let lineArr = line.split(" ");
+      if (!lineArr[1]) {
+        activeModel = "";
+        continue;
+      }
+      activeModel = lineArr[1];
+      modelStrObj[activeModel] = [];
+      continue;
+    }
+
+    if (Array.isArray(modelStrObj[activeModel]) && !line.includes("}")) {
+      modelStrObj[activeModel].push(line);
+    }
+
+    if (line.includes("}")) {
+      activeModel = "";
+    }
+  }
+
+  return modelStrObj;
+}
+
+function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
+  for (let i = 0; i < fieldArray.length; i++) {
+    let fieldLine = fieldArray[i];
+
+    let fieldLineArray = fieldLine.split(" ");
+
+    let field = fieldLineArray[0]?.toLowerCase()?.replace(/\s+/g, "")?.trim();
+    let type = fieldLineArray[1]?.toLowerCase()?.replace(/\s+/g, "")?.trim();
+    let metaInfo = fieldArray[2]?.toLowerCase()?.replace(/\s+/g, "");
+
+    let convertedType = type?.toLowerCase()?.replace(/\?/g, "");
+
+    let fieldItemObj = prismaDict[convertedType];
+
+    if (!fieldItemObj) {
+      include[convertedType] = true;
+      continue;
+    }
+
+    if (type?.includes("?")) {
+      fieldItemObj.required = false;
+    }
+
+    if (configObj?.fieldSkip?.includes(field)) {
+      fieldItemObj.is_skipped = true;
+    }
+
+    if (metaInfo?.includes("@default")) {
+      let inCircleBrackets = getInsideParentheses(metaInfo);
+
+      if (inCircleBrackets === "") {
+        fieldItemObj.default = "";
+      } else if (inCircleBrackets === "true") {
+        fieldItemObj.default = true;
+      } else if (inCircleBrackets === "false") {
+        fieldItemObj.default = false;
+      } else if (inCircleBrackets?.includes("now()")) {
+        fieldItemObj.default = "timestamp:now";
+      } else if (inCircleBrackets === "[]") {
+        fieldItemObj.default = [];
+      } else if (inCircleBrackets === "{}") {
+        fieldItemObj.default = {};
+      }
+    }
+
+    fields[field] = fieldItemObj;
+  }
+}
+
+function getInsideParentheses(str) {
+  const match = str.match(/\((.*)\)/);
+  return match ? match[1].trim() : null;
+}
+
+module.exports = getPrismaModels;
