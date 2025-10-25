@@ -39,7 +39,8 @@ async function getPrismaModels() {
     fieldObjectGen({ fieldArray, configObj, fields, include });
     model[modelName] = { field: fields, include };
   }
-  console.log(model);
+
+  return model;
 }
 
 function getModelStrObj({ lines }) {
