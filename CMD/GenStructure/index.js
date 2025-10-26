@@ -7,15 +7,15 @@ const {
   projectIsModuleBased,
   updateConfigFile,
   getStructureObject,
+  updateStructureObject,
 } = require("./../../UTILS/config");
-
-
 
 const { select, input, confirm } = require("@inquirer/prompts");
 
 const cliMessage = require("./../../UTILS/cliMessage");
 
-const getBaseFilePaths = require("./getBaseFilePaths");
+const smartFolderStructure = require("./smartStrucure");
+const normalFolderStructure = require("./normalStructure");
 
 async function GenFolderStructure() {
   const configObj = getConfigObject();
@@ -34,8 +34,6 @@ async function GenFolderStructure() {
 
   const structureObj = getStructureObject();
 
-  cliMessage.info("Generating folder structure by reading schema.prisma file");
-
   if (structureObj) {
     const proceed = await confirm({
       message: cliMessage.warning(
@@ -47,18 +45,30 @@ async function GenFolderStructure() {
     if (!proceed) {
       return;
     }
+  } else {
+    cliMessage.info(
+      "Generating folder structure by reading schema.prisma file"
+    );
   }
   const folderType = await select({
     message: "Choose folder structure type:",
     choices: [
       { name: "Smart (recommended)", value: "smart" },
-      { name: "General", value: "General" },
+      { name: "General", value: "general" },
     ],
   });
 
+  const folderStructureFunc =
+    folderType === "smart" ? smartFolderStructure : normalFolderStructure;
 
+  let folderStructure = await folderStructureFunc();
 
+  if (!folderStructure) {
+    cliMessage.error(`Failed to generate folder structure`);
+    return;
+  }
 
+  updateStructureObject(folderStructure);
 }
 
 module.exports = GenFolderStructure;

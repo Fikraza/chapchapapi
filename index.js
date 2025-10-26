@@ -5,12 +5,12 @@ const args = process.argv.slice(2);
 console.log(args);
 
 const init = require("./CMD/Init");
-const smartStrucure = require("./CMD/GenStructure/smartStrucure");
+const GenStructure = require("./CMD/GenStructure");
 
 if (args[0]?.toLowerCase() === "init") {
   init();
 }
 
 if (args[0]?.toLocaleLowerCase() === "test") {
-  smartStrucure();
+  GenStructure();
 }

@@ -9,6 +9,15 @@ async function normalStructure() {
     if (!models) {
       return null;
     }
+
+    const modelKeys = Object.keys(models).sort();
+
+    let structure = modelKeys.reduce((accumulator, currentValue) => {
+      accumulator[currentValue] = currentValue;
+      return accumulator;
+    }, {});
+
+    return structure;
   } catch (e) {
     return null;
   }

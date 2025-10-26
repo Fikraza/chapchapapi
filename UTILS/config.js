@@ -114,6 +114,27 @@ function getStructureObject() {
   return obj;
 }
 
+function updateStructureObject(newStructure) {
+  if (typeof newStructure !== "object") {
+    return null;
+  }
+  baseFolderSetup();
+  let structureFilePath = getStructurePath();
+  fs.writeFileSync(structureFilePath, JSON.stringify(newStructure, null, 2));
+}
+
+function getModelPath() {
+  let config = getConfigObject();
+
+  if (!config) {
+    return null;
+  }
+
+  if (config?.baseFolder) {
+    return;
+  }
+}
+
 module.exports = {
   getConfigPath,
   getPrismaFilePath,
@@ -123,4 +144,5 @@ module.exports = {
   updateConfigFile,
   jsonFileToObj,
   getStructureObject,
+  updateStructureObject,
 };

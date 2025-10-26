@@ -79,6 +79,7 @@ async function Init() {
     prisma: "prisma/schema.prisma",
     type: moduleBase,
     fieldSkip,
+    baseFolder: baseFolder,
   };
 
   updateConfigFile(configObj);

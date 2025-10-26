@@ -44,7 +44,6 @@ async function SmartStructure() {
 
       return accumulator;
     }, {});
-    console.log(sortedStructure);
     return sortedStructure;
   } catch (e) {
     console.log(e);
