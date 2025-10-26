@@ -38,7 +38,14 @@ async function SmartStructure() {
       structure[modelName] = path.join(...arrayPath);
     }
 
-    return structure;
+    let sortedKeys = modelKeys.sort();
+    let sortedStructure = sortedKeys.reduce((accumulator, currentValue) => {
+      accumulator[currentValue] = structure[currentValue];
+
+      return accumulator;
+    }, {});
+    console.log(sortedStructure);
+    return sortedStructure;
   } catch (e) {
     console.log(e);
     return null;
