@@ -107,21 +107,7 @@ function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
     }
 
     if (metaInfo?.includes("@default")) {
-      let inCircleBrackets = getInsideParentheses(metaInfo);
-
-      if (inCircleBrackets === "") {
-        fieldItemObj.default = "";
-      } else if (inCircleBrackets === "true") {
-        fieldItemObj.default = true;
-      } else if (inCircleBrackets === "false") {
-        fieldItemObj.default = false;
-      } else if (inCircleBrackets?.includes("now()")) {
-        fieldItemObj.default = "timestamp:now";
-      } else if (inCircleBrackets === "[]") {
-        fieldItemObj.default = [];
-      } else if (inCircleBrackets === "{}") {
-        fieldItemObj.default = {};
-      }
+      fieldItemObj.is_skipped = true;
     }
 
     fields[field] = fieldItemObj;

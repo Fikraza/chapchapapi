@@ -57,28 +57,11 @@ async function Init() {
     cliMessage.printNote(`📂 Folder already exists: ${targetPath}`);
   }
 
-  const defaultFields = ["id", "created_at", "updated_at"];
-  const fieldSkip = [];
-
-  for (const field of defaultFields) {
-    const shouldSkip = await confirm({
-      message: cliMessage.info(
-        `Skip the following fields for generation ${field} ?`
-      ),
-      default: true,
-    });
-
-    if (shouldSkip) {
-      fieldSkip.push(field);
-    }
-  }
-
   let moduleBase = projectIsModuleBased(cwd);
 
   let configObj = {
     prisma: "prisma/schema.prisma",
     type: moduleBase,
-    fieldSkip,
     baseFolder: baseFolder,
   };
 

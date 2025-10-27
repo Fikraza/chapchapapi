@@ -1,0 +1,4 @@
+{
+  "allowedMethods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  "allowedCsv": ["template", "upload", "generate"]
+}
