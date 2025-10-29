@@ -20,18 +20,20 @@ async function GenScheme() {
   const currentDir = __dirname;
 
   if (!config) {
-    cliMessage.error(["Failed to get config object", "Run initializer"]);
+    cliMessage.printError(["Failed to get config object", "Run initializer"]);
     return;
   }
 
   if (!config?.baseFolder) {
-    cliMessage.error(["Base folder not found", "Run initializer"]);
+    cliMessage.printError(["Base folder not found", "Run initializer"]);
     return;
   }
 
   const moduleBase = projectIsModuleBased();
   if (moduleBase !== "commonjs") {
-    cliMessage.error("chapchapapi only supports module-based JS at this point");
+    cliMessage.printError(
+      "chapchapapi only supports module-based JS at this point"
+    );
     return;
   }
 
