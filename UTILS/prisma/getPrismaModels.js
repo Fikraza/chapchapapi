@@ -105,10 +105,6 @@ function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
       fieldItemObj.required = false;
     }
 
-    if (configObj?.fieldSkip?.includes(field)) {
-      fieldItemObj.is_skipped = true;
-    }
-
     if (metaInfo?.includes("@default")) {
       fieldItemObj.is_skipped = true;
     }
