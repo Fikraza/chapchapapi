@@ -1,12 +1,12 @@
 const fs = require("fs");
 const path = require("path");
-const { getConfigObject } = require("../config");
+// const { getConfigObject } = require("../config");
 const prismaDict = require("./prismaDict");
-const metaInfoDict = require("./metaInfoDict");
+// const metaInfoDict = require("./metaInfoDict");
 
 async function getPrismaModels() {
   const prisma_file_path = getConfigObject().prisma;
-  const configObj = getConfigObject();
+  // const configObj = getConfigObject();
 
   const cwd = process.cwd();
 
@@ -36,7 +36,7 @@ async function getPrismaModels() {
     let fields = {};
     let include = {};
 
-    fieldObjectGen({ fieldArray, configObj, fields, include });
+    fieldObjectGen({ fieldArray, fields, include });
 
     model[modelName] = { field: fields, include };
   }
@@ -74,7 +74,7 @@ function getModelStrObj({ lines }) {
   return modelStrObj;
 }
 
-function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
+function fieldObjectGen({ fieldArray, fields = {}, include }) {
   for (let i = 0; i < fieldArray.length; i++) {
     let fieldLine = fieldArray[i];
 
