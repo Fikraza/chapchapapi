@@ -14,6 +14,12 @@ const cliMessage = require("./../../UTILS/cliMessage");
 
 const getBaseFilePaths = require("./getBaseFilePaths");
 
+const GenFolderStructure = require("./../GenFolderStructure");
+
+const GenScheme = require("./../GenScheme");
+
+const GenCrudModel = require("./../GenCrudModel");
+
 async function Init() {
   const cwd = process.cwd();
 
@@ -66,6 +72,10 @@ async function Init() {
   };
 
   updateConfigFile(configObj);
+
+  await GenFolderStructure();
+  await GenScheme();
+  await GenCrudModel();
 }
 
 module.exports = Init;

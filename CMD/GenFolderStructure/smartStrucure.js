@@ -44,6 +44,28 @@ async function SmartStructure() {
 
       return accumulator;
     }, {});
+
+    // nested path are better
+    for (let i = 0; i < sortedKeys.length; i++) {
+      let key1 = sortedKeys[i];
+      let path1 = structure[key1];
+      let pathArray1 = path1.split("/");
+      if (pathArray1?.length === 1) {
+        for (let k = 0; k < sortedKeys.length; k++) {
+          let key2 = sortedKeys[k];
+          let path2 = structure[key2];
+          let pathArray2 = path2.split("/");
+          if (pathArray2?.length === 1) {
+            continue;
+          }
+          if (pathArray1[0] === pathArray2[0]) {
+            sortedStructure[key1] = `${pathArray1[0]}/${pathArray1[0]}`;
+            break;
+          }
+        }
+      }
+    }
+
     return sortedStructure;
   } catch (e) {
     console.log(e);

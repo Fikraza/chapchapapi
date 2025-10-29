@@ -11,7 +11,7 @@ async function getPrismaModels() {
   const cwd = process.cwd();
 
   let prisma_file = path.join(cwd, prisma_file_path);
-  console.log(prisma_file);
+
   if (!fs.existsSync(prisma_file)) {
     return null;
   }
@@ -37,6 +37,7 @@ async function getPrismaModels() {
     let include = {};
 
     fieldObjectGen({ fieldArray, configObj, fields, include });
+
     model[modelName] = { field: fields, include };
   }
 
@@ -81,11 +82,13 @@ function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
 
     let field = fieldLineArray[0]?.toLowerCase()?.replace(/\s+/g, "")?.trim();
     let type = fieldLineArray[1]?.toLowerCase()?.replace(/\s+/g, "")?.trim();
-    let metaInfo = fieldArray[2]?.toLowerCase()?.replace(/\s+/g, "");
+    let metaInfo = fieldLineArray[2]?.toLowerCase()?.replace(/\s+/g, "");
 
     let convertedType = type?.toLowerCase()?.replace(/\?/g, "");
 
-    let fieldItemObj = prismaDict[convertedType];
+    const fieldItemObj = prismaDict[convertedType]
+      ? structuredClone(prismaDict[convertedType])
+      : null;
 
     if (!fieldItemObj) {
       if (
@@ -98,7 +101,7 @@ function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
       continue;
     }
 
-    if (type?.includes("?")) {
+    if (type?.trim()?.endsWith("?")) {
       fieldItemObj.required = false;
     }
 
@@ -112,11 +115,6 @@ function fieldObjectGen({ fieldArray, fields = {}, configObj, include }) {
 
     fields[field] = fieldItemObj;
   }
-}
-
-function getInsideParentheses(str) {
-  const match = str.match(/\((.*)\)/);
-  return match ? match[1].trim() : null;
 }
 
 function hasSpecialOrNumbers(str) {
