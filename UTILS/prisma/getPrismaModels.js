@@ -106,7 +106,7 @@ function fieldObjectGen({ fieldArray, fields = {}, include }) {
     }
 
     if (metaInfo?.includes("@default")) {
-      fieldItemObj.is_skipped = true;
+      fieldItemObj.skip_check = true;
     }
 
     fields[field] = fieldItemObj;
