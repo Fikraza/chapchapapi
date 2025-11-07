@@ -1,18 +1,20 @@
 const fs = require("fs");
 const path = require("path");
-// const { getConfigObject } = require("../config");
+const { getPrismaFilePath } = require("../config");
 const prismaDict = require("./prismaDict");
 // const metaInfoDict = require("./metaInfoDict");
 
 async function getPrismaModels() {
-  const prisma_file_path = getConfigObject().prisma;
-  // const configObj = getConfigObject();
+  // const configObj = getConfigObject()
+  // co;
+  //console.log("prisma file path", prisma_file_path);
 
   const cwd = process.cwd();
 
-  let prisma_file = path.join(cwd, prisma_file_path);
+  let prisma_file = getPrismaFilePath();
 
   if (!fs.existsSync(prisma_file)) {
+    console.warn("prima file not found");
     return null;
   }
 
@@ -40,6 +42,8 @@ async function getPrismaModels() {
 
     model[modelName] = { field: fields, include };
   }
+
+  console.log(model);
 
   return model;
 }
@@ -77,6 +81,7 @@ function getModelStrObj({ lines }) {
 function fieldObjectGen({ fieldArray, fields = {}, include }) {
   for (let i = 0; i < fieldArray.length; i++) {
     let fieldLine = fieldArray[i];
+    let noSpaceFieldLine = fieldLine.replace(/\s+/g, "");
 
     let fieldLineArray = fieldLine.split(" ");
 
@@ -105,7 +110,7 @@ function fieldObjectGen({ fieldArray, fields = {}, include }) {
       fieldItemObj.required = false;
     }
 
-    if (metaInfo?.includes("@default")) {
+    if (noSpaceFieldLine?.includes("@default")) {
       fieldItemObj.skip_check = true;
     }
 

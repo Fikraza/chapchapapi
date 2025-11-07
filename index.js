@@ -2,8 +2,6 @@
 
 const args = process.argv.slice(2);
 
-console.log(args);
-
 const init = require("./CMD/Init");
 const GenCrudModel = require("./CMD/GenCrudModel");
 const GenFolderStructure = require("./CMD/GenFolderStructure");
@@ -16,5 +14,5 @@ if (args[0]?.toLowerCase() === "init") {
 }
 
 if (args[0]?.toLocaleLowerCase() === "test") {
-  getPrismaModels();
+  GenFolderStructure();
 }

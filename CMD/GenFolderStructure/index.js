@@ -68,7 +68,7 @@ async function GenFolderStructure() {
     return;
   }
 
-  updateStructureObject(folderStructure);
+  updateStructureObject(folderStructure || {});
 }
 
 module.exports = GenFolderStructure;
