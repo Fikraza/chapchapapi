@@ -65,13 +65,17 @@ async function GenCrudModel() {
     "Controller/Scheme/Models"
   );
 
-  const pdfFiles = [path.join(currentDir, "pdf/generate.js")];
+  const pdfFiles = [
+    path.join(currentDir, "pdf/generate.js"),
+    path.join(currentDir, "pdf/index.js"),
+  ];
 
   const csvFiles = [
     path.join(currentDir, "csv/generate.js"),
     path.join(currentDir, "csv/template.js"),
     path.join(currentDir, "csv/upload.js"),
     path.join(currentDir, "csv/uploadTx.js"),
+    path.join(currentDir, "csv/index.js"),
   ];
 
   const permissionFiles = [
@@ -81,10 +85,12 @@ async function GenCrudModel() {
     path.join(currentDir, "permission/patch.js"),
     path.join(currentDir, "permission/read.js"),
     path.join(currentDir, "permission/update.js"),
+    path.join(currentDir, "permission/index.js"),
   ];
   const searchFiles = [
     path.join(currentDir, "search/fuzzy.js"),
     path.join(currentDir, "search/pg.js"),
+    path.join(currentDir, "search/index.js"),
   ];
 
   let allFilesPaths = [

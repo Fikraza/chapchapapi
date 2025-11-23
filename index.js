@@ -14,5 +14,5 @@ if (args[0]?.toLowerCase() === "init") {
 }
 
 if (args[0]?.toLocaleLowerCase() === "test") {
-  GenFolderStructure();
+  GenCrudModel();
 }
