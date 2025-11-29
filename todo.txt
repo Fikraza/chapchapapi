@@ -1,55 +1,7 @@
-List all commands we want to achieve
-
-USER JOURNEY INTIAL SETUP
-STEP1: INITIAL SETUP
-    STEP A:-> Set up the main folder:<ChapiChapi>
-    STEP B:-> SET UP config.json-> Settings (entry folder,prisma file locaiton)
-    STEP C:-> GENERATE CONTROLLER FOLDER
-    STEP D:-> GENERATE MILDREWARE FOLDER
-    STEP E:-> GENERATE ROUTES FOLDER
-
-STEP2:CONTROLLER->PRISMA->indexjsx folder(focus on postgresql)
-STEP3:CONTROLLER->SCHEME
-
-STEP4:CONTROLLER->SCHEME->CRUD
-      STEP 1:->CREATE File
-      STEP 2:->DELETE File
-      STEP 3:->PATCH File
-      STEP 4:->READ File
-      STEP 5:->UPDATE File
-
-STEP 5:CONTROLLER->SCHEME->CSV
-    STEP 1:GENERATE CSV:<>
-    STEP 2:TEMPLATE CSV:
-    STEP 3:UPLOAD CSV
-
-STEP 6:CONTROLLER->SCHEME-LIST -> index
-
-STEP 7:CONTROLLER->SCHEME->LISTMULTI->index
-
-STEP 8:CONTROLLER->SCHEME->PDF (style.js<allow model style>,bg,index.js)
-
-STEP9:CONTROLLER->SCHEME->MODELS
-     SINGLE MODEL FOLDER:->csv folder->generate.js,template.js->upload.js
-                        :generate.js:<special filters section,per_record_call,
-                                    >
-                        :upload_ts.js:<using transaction to upload,
-                        per_record_update tx,tx expiery config,errors,>
-                        :upload.js:<non transaction,prisma-> will be provided>
-     SINGLE MODEL FOLDER:->field.json:<add message for each validation etc>
-     SINGLE MODEL FOLDER:->include.json
-     SINGLE MODEL FOLDER:->pdf.json:<special filters section,per_record_call,
-                                    > 
-     SINGLE MODEL FILDER:-> permission folder-> create.js,read.js,update.js,delete.js
-                                                csv_upload.js,csv_generate.js,csv_template.js:
-                                                ({req,data}) ->
-                                                config.json ->[alowedMethods]
-     Single MODEL FOLDER:->search folder -> pg_trigm.js and fuzzy.js
-
-     
-STEP10:MINIO<UPCOMING>
-STEP11:UTILS:<>
-
-
-
-list candidate by team and by recruitment center
+To bump versions:
+Patch
+npm version patch
+Minor
+npm version minor
+Major
+npm version major

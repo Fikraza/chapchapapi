@@ -1,7 +1,7 @@
 {
   "name": "chapchapapi",
   "version": "1.0.0",
-  "description": "A Node.js CLI app",
+  "description": "A Node.js CLI tool for automating CRUD, search, pagination, and CSV endpoints in Prisma + Express projects.",
   "bin": {
     "chapchapapi": "./index.js"
   },
@@ -10,6 +10,23 @@
   },
   "author": "Arthur Codex",
   "license": "MIT",
+  "keywords": [
+    "cli",
+    "express",
+    "prisma",
+    "crud",
+    "crud-generator",
+    "api-generator",
+    "endpoint-generator",
+    "automation",
+    "scaffolding",
+    "pagination",
+    "search",
+    "csv",
+    "nodejs",
+    "developer-tools",
+    "backend-tools"
+  ],
   "dependencies": {
     "@inquirer/input": "^3.0.0",
     "@inquirer/prompts": "^7.5.3",
