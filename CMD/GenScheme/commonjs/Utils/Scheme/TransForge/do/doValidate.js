@@ -1,4 +1,4 @@
-const validationFuncs = require("./../validate");
+const validationFuncs = require("../validate");
 const safeCap = require("./safeCap");
 
 async function doValidate({

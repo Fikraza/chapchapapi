@@ -74,6 +74,19 @@ async function GenScheme() {
     return;
   }
 
+  //copy middleware and routes from commonjs folder into controller
+
+  await copyDirContents(
+    path.join(currentDir, "otherCommonjs"),
+    path.join(cwd, config.baseFolder)
+  );
+
+  //copy prisma folder and business folder
+  await copyDirContents(
+    path.join(currentDir, "BusinessAndPrisma"),
+    path.join(cwd, config.baseFolder, "Controller")
+  );
+
   cliMessage.printSuccess("✅ Scheme files generated successfully!");
 }
 

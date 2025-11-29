@@ -1,61 +1,75 @@
-const getModel = require("./../Utils/CLI/getModel");
-
-const genBody = require("./../Utils/Scheme/genBody");
-
-const TransForge = require("./../Utils/Scheme/TransForge");
-
-const prisma = require("../../Prisma");
+const prisma = require("./../../Prisma");
+const getModel = require("../Utils/CLI/getModel");
 
 const {
-  checkPermission,
-  buildResponse,
-  handleAfterPermission,
-  handleBeforePermission,
-} = require("./utils");
+  ifmethodNotAllowedThrowError,
+  beforeRequestPermissionCheck,
+  afterRequestPermissionCheck,
+} = require("./utils/permissionChecker");
+
+const { pruneBodyByFields } = require("./utils/helpers");
+
+const transForge = require("./utils/transForge");
 
 async function Create(req, res, next) {
   try {
     const { model } = req.params;
+
     const body = req.body;
 
-    const modelDoc = getModel(model);
-    const { field, permission } = modelDoc;
-    if (!field)
-      throw {
-        custom: true,
-        message: "Model not supported for Scheme",
-        status: 500,
-      };
+    if (!model) {
+      throw { custom: true, message: "Model required for create", status: 500 };
+    }
 
-    await checkPermission(modelDoc, "POST");
-    const beforePermissionResponse = await handleBeforePermission({
+    const modelObj = getModel({ model });
+
+    if (!modelObj) {
+      throw { custom: true, message: "Model not supported for create" };
+    }
+
+    const field = modelObj?.field;
+
+    const permission = modelObj?.permission;
+
+    const permisionConfig = permission?.Config;
+
+    if (typeof field !== "object") {
+      throw { custom: true, message: "Field for model not found" };
+    }
+
+    if (body?.id) {
+      delete body.id;
+    }
+    ifmethodNotAllowedThrowError({ permisionConfig, method: "GET" });
+    pruneBodyByFields({ body, field });
+
+    //return res.status(200).json({ body });
+
+    let responseObject = { _message: "Record created" };
+
+    await transForge({ fields: field, req, body, model });
+
+    await beforeRequestPermissionCheck({
       req,
-      permission,
+      body,
+      beforeReqFunction: permission?.Create?.beforeCreate,
+      responseObject,
     });
-    const data = genBody({ body, field });
-    await TransForge({
-      field,
-      model,
-      body: data,
+
+    const record = await prisma[model].create({
+      data: body,
+    });
+
+    responseObject = { ...responseObject, ...record };
+
+    await afterRequestPermissionCheck({
       req,
-      excludeInValidation: ["id"],
+      record,
+      afterReqFunction: permission?.Create?.afterCreate,
+      responseObject,
     });
 
-    const doc = await prisma[model].create({ data });
-
-    const afterPermissionResponse = await handleAfterPermission({
-      req,
-      data,
-      permission,
-    });
-
-    const response = buildResponse({
-      _message: "Created successfully",
-      data: doc,
-      beforeRes: beforePermissionResponse,
-      afterRes: afterPermissionResponse,
-    });
-    return res.status(200).json(response);
+    return res.status(200).json(responseObject);
   } catch (e) {
     console.log(e);
     next(e);

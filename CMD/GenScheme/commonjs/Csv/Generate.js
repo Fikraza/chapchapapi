@@ -1,158 +1,186 @@
-const getModel = require("./../Utils/CLI/getModel");
-const {
-  rangeFilter,
-  modelFilter,
-  formatOrder,
-} = require("./../Utils/Scheme/Filter");
 const prisma = require("../../Prisma");
+const getModel = require("../Utils/CLI/getModel");
+
+const {
+  ifmethodNotAllowedThrowError,
+  beforeRequestPermissionCheck,
+  afterRequestPermissionCheck,
+} = require("../Crud/utils/permissionChecker");
+
+const QueryFilter = require("../Utils/QueryFilter");
+const handleOrderQuery = require("./../Utils/General/handleOrderQuery");
+
 const fs = require("fs");
 const path = require("path");
 const process = require("process");
-const getNestedValueFromObj = require("./../Utils/General/getNestedValueFromObj");
 
-const {
-  handleAfterPermission,
-  handleBeforePermission,
-} = require("./../Utils/Scheme/Permission");
-
-function escapeCsvValue(value) {
-  if (value == null) return ""; // handle null/undefined
-  let str = String(value);
-
-  // Escape double quotes by doubling them
-  if (/[",\n]/.test(str)) {
-    str = '"' + str.replace(/"/g, '""') + '"';
-  }
-  return str;
-}
+const { getNestedValueFromObj, escapeCsvValue } = require("./../Utils/General");
 
 async function Generate(req, res, next) {
-  const rootDir = process.cwd();
-  const fileName = `gen-${req?.params?.model || "-"}${Date.now()}.csv`;
-  const filePath = path.join(rootDir, "Temp/Generated");
+  const { model } = req.params;
 
-  if (!fs.existsSync(filePath)) {
-    fs.mkdirSync(filePath, { recursive: true });
+  const rootDir = process.cwd();
+  const fileName = `gen-${model || "-"}-${Date.now()}.csv`;
+  const fileDir = path.join(rootDir, "Temp/Generated");
+
+  if (!fs.existsSync(fileDir)) {
+    fs.mkdirSync(fileDir, { recursive: true });
   }
 
-  const filePlusPath = path.join(filePath, fileName);
-  fs.writeFileSync(filePlusPath, "", "utf8");
-
-  let fileWasSent = false;
-  res.on("finish", () => {
-    fileWasSent = true;
-  });
+  const filePath = path.join(fileDir, fileName);
 
   try {
-    const { model } = req.params;
-    const modelDoc = getModel(model);
-    const { permission, csv, include = {} } = modelDoc;
-
-    const { order = "id-desc" } = req.query;
     const query = req.query;
+    let { page = 1, limit = 1000, order = null } = req.query;
 
-    const allowedMethods = Array.isArray(permission?.allowedMethods)
-      ? permission?.allowedMethods
-      : [""];
-
-    if (!allowedMethods.includes("GET")) {
-      throw { custom: true, message: "Model permission denied", status: 403 };
+    const modelObj = getModel({ model });
+    if (!modelObj) {
+      throw { custom: true, message: "Model not supported for get" };
     }
 
-    const head = csv?.head;
-    const data = csv?.data;
+    const include = modelObj?.include || {};
+    const permission = modelObj?.permission;
+    const csvGenerate = modelObj?.csv?.Generate;
 
-    if (!head || !data) {
-      throw { custom: true, message: "CSV generation not supported on model" };
+    if (!csvGenerate) {
+      throw { custom: true, _message: `CSV not supported for model ${model}` };
     }
 
-    let headString = Array.isArray(head)
-      ? head.map((str) => str?.toString()?.replace(/[\r\n,]+/g, "")).join(",")
-      : head?.toString()?.replace(/[\r\n,]+/g, "");
+    const headerRow = csvGenerate?.head;
+    const headData = csvGenerate?.data;
 
-    await handleBeforePermission({ req, permission });
+    if (!Array.isArray(headerRow)) {
+      throw {
+        custom: true,
+        _message: `CSV head array required for model ${model}`,
+      };
+    }
 
+    const permisionConfig = permission?.Config;
     const where = {};
-    const exclude = ["page", "limit", "order"];
-    rangeFilter({ where, exclude, query });
-    modelFilter({ where, exclude, query });
+    const ignoreInFilters = ["page", "limit", "order", "_meta_info"];
 
-    const orderBy = formatOrder(order);
-    const limit = 9000;
-    let pageNumber = 1;
-    const fileStream = fs.createWriteStream(filePlusPath);
+    ifmethodNotAllowedThrowError({ permisionConfig, method: "GET" });
 
-    await new Promise((resolve, reject) => {
-      fileStream.write(headString + "\n", (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
+    QueryFilter({ where, query, ignoreInFilters });
+    const orderBy = {};
+    handleOrderQuery({ orderBy, order });
+
+    limit = parseInt(limit) || 500;
+    let pageNumber = parseInt(page) || 1;
+
+    await beforeRequestPermissionCheck({
+      req,
+      body: req.body,
+      beforeReqFunction: csvGenerate?.beforeGenerate,
+      query,
+      where,
+      ignoreInFilters,
+      include,
+      orderBy,
     });
 
-    await prisma.$transaction(
-      async (tx) => {
-        while (true) {
-          const pageLimit = parseInt(limit);
-          const offset =
-            pageNumber > 1 ? pageNumber * pageLimit - pageLimit : 0;
+    const fileStream = fs.createWriteStream(filePath);
 
-          const items = await tx[model].findMany({
-            where,
+    // Write header row
+    const headerLine = headerRow
+      .map((h) => escapeCsvValue(String(h)))
+      .join(",");
+    await new Promise((resolve, reject) => {
+      fileStream.write(headerLine + "\n", (err) =>
+        err ? reject(err) : resolve()
+      );
+    });
+
+    // Write data rows in pages
+    while (true) {
+      const offset = (pageNumber - 1) * limit;
+
+      console.log(pageNumber);
+
+      const records = await prisma[model].findMany({
+        where,
+        include,
+        orderBy,
+        skip: offset,
+        take: limit,
+      });
+
+      if (records.length === 0) break;
+
+      for (let i = 0; i < records.length; i++) {
+        let record = records[i];
+        let lineStr = "";
+
+        if (typeof headData === "function") {
+          const lineArray = await headData({
+            record,
+            escapeCsvValue,
+            index: i,
+            pageNumber,
             include,
-            orderBy,
-            skip: offset,
-            take: pageLimit,
           });
-
-          if (items.length === 0) break;
-
-          let lines = "";
-
-          if (Array.isArray(data)) {
-            lines = items
-              .map((item) =>
-                data
-                  .map((fieldPath) => {
-                    let val = getNestedValueFromObj({
-                      obj: item,
-                      fieldPath,
-                    });
-                    if (typeof val === "undefined") return "-";
-                    if (val === null) return "null";
-                    return escapeCsvValue(val.toString());
-                  })
-                  .join(",")
-              )
-              .join("\n");
-          } else if (typeof data === "function") {
-            lines = items
-              .map((item) => (data(item) || "").toString())
-              .join("\n");
+          if (!Array.isArray(lineArray)) {
+            throw {
+              custom: true,
+              _message: `Head Data function must return an array of strings for each record`,
+              status: 500,
+            };
           }
-
-          await new Promise((resolve, reject) => {
-            fileStream.write(lines + "\n", (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
-
-          pageNumber += 1;
+          lineStr = lineArray
+            ?.map((line) => escapeCsvValue(String(line)))
+            ?.join(",");
         }
-      },
-      { timeout: 60000000 }
-    );
 
-    await handleAfterPermission({ req, permission, data: {} });
+        if (Array.isArray(headData)) {
+          const lineArray = headData.map((current) => {
+            const col = getNestedValueFromObj({
+              obj: record,
+              fieldPath: current,
+            });
+            return escapeCsvValue(col);
+          });
+          lineStr = lineArray.join(",");
+        }
+
+        if (!lineStr) {
+          continue;
+        }
+
+        await new Promise((resolve, reject) => {
+          fileStream.write(lineStr + "\n", (err) =>
+            err ? reject(err) : resolve()
+          );
+        });
+      }
+
+      pageNumber += 1;
+    }
 
     await new Promise((resolve, reject) => {
-      fileStream.end((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
+      fileStream.end((err) => (err ? reject(err) : resolve()));
     });
 
-    return res.sendFile(filePlusPath, (err) => {
+    await afterRequestPermissionCheck({
+      req,
+      body: req.body,
+      beforeReqFunction: csvGenerate?.beforeGenerate,
+      query,
+      where,
+      ignoreInFilters,
+      include,
+      orderBy,
+      filePath,
+      pageNumber,
+      limit,
+    });
+
+    // Send file and delete after sending
+    return res.sendFile(filePath, (err) => {
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr)
+          console.error("Error deleting temporary CSV file:", unlinkErr);
+      });
       if (err) {
         console.error("Error sending file:", err);
         res.status(500).send("Error sending file");
@@ -160,15 +188,6 @@ async function Generate(req, res, next) {
     });
   } catch (e) {
     next(e);
-  } finally {
-    // Cleanup: delete file after sending completes
-    setTimeout(() => {
-      if (fileWasSent && fs.existsSync(filePlusPath)) {
-        fs.unlink(filePlusPath, (err) => {
-          if (err) console.error("Error deleting file:", err);
-        });
-      }
-    }, 500);
   }
 }
 

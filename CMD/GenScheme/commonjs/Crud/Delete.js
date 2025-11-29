@@ -1,67 +1,83 @@
-const prisma = require("../../Prisma");
-
-const getModel = require("./../Utils/CLI/getModel");
+const prisma = require("./../../Prisma");
+const getModel = require("../Utils/CLI/getModel");
 
 const {
-  checkPermission,
-  buildResponse,
-  handleAfterPermission,
-  handleBeforePermission,
-} = require("./utils");
+  ifmethodNotAllowedThrowError,
+  beforeRequestPermissionCheck,
+  afterRequestPermissionCheck,
+} = require("./utils/permissionChecker");
 
 async function Delete(req, res, next) {
   try {
-    // code here
-
     const { model } = req.params;
     const { id } = req.query;
 
     if (!id) {
-      throw { custom: true, message: "Id required" };
+      throw { custom: true, message: "Id required for delete operation" };
     }
 
-    const modelDoc = getModel(model);
+    if (!model) {
+      throw { custom: true, message: "Model required for delete", status: 500 };
+    }
 
-    const { permission } = modelDoc;
+    const modelObj = getModel({ model });
 
-    await checkPermission(modelDoc, "DELETE");
+    if (!modelObj) {
+      throw {
+        custom: true,
+        message: "Model not supported for delete operation",
+      };
+    }
 
-    const beforePermissionResponse = await handleBeforePermission({
+    const permission = modelObj?.permission;
+
+    const permisionConfig = permission?.Config;
+
+    ifmethodNotAllowedThrowError({ permisionConfig, method: "DELETE" });
+
+    let responseObject = { _message: "Record deleted" };
+
+    await beforeRequestPermissionCheck({
       req,
-      permission,
+      beforeReqFunction: permisionConfig?.Delete?.beforeDelete,
+      responseObject,
     });
 
-    const transaction = await prisma.$transaction(async (tx) => {
-      const record = await prisma[model].findUnique({
-        where: { id },
-      });
+    let record = null;
 
-      if (!record) {
-        throw { custom: true, message: "Record to delete not found" };
-      }
+    const transaction = await prisma.$transaction(
+      async (tx) => {
+        const recordExists = await tx[model].findUnique({
+          where: {
+            id,
+          },
+        });
 
-      const deleteRecord = await prisma[model].delete({
-        where: { id },
-      });
+        if (!recordExists) {
+          throw { custom: true, message: "Record to delete does not exist" };
+        }
 
-      return deleteRecord;
-    });
+        record = await tx[model].delete({
+          where: {
+            id,
+          },
+        });
+      },
+      { timeout: 60000 }
+    );
 
-    const afterPermissionResponse = await handleAfterPermission({
+    responseObject = { ...responseObject, ...record };
+
+    await afterRequestPermissionCheck({
       req,
-      data,
-      permission,
+      record,
+      afterReqFunction: permission?.Delete?.afterDelete,
+      responseObject,
     });
 
-    const response = buildResponse({
-      _message: "Created successfully",
-      data: doc,
-      beforeRes: beforePermissionResponse,
-      afterRes: afterPermissionResponse,
-    });
-
-    return res.status(200).json(response);
+    return res.status(200).json(responseObject);
   } catch (e) {
+    console.log("error", e);
     next(e);
   }
 }

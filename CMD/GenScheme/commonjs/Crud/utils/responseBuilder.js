@@ -18,4 +18,4 @@ function buildResponse({ _message, data, beforeRes, afterRes }) {
   return response;
 }
 
-module.exports = { buildResponse };
+module.exports = buildResponse;

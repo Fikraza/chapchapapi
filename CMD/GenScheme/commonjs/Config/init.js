@@ -30,12 +30,11 @@ async function init(req, res, next) {
 
         delete update_doc.id;
         doc.id = generateUUID(j + 1);
-
-        //console.log("DOC, ", doc);
+        //Chan
 
         const result = await prisma[key].upsert({
           where: {
-            id: doc.id,
+            id: doc.id, //change to id you can use the index if not using uuid
           },
           update: update_doc,
           create: doc,

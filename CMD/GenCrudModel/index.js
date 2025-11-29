@@ -65,10 +65,11 @@ async function GenCrudModel() {
     "Controller/Scheme/Models"
   );
 
-  const pdfFiles = [
-    path.join(currentDir, "pdf/generate.js"),
-    path.join(currentDir, "pdf/index.js"),
-  ];
+  //Comming soon
+  // const pdfFiles = [
+  //   path.join(currentDir, "pdf/generate.js"),
+  //   path.join(currentDir, "pdf/index.js"),
+  // ];
 
   const csvFiles = [
     path.join(currentDir, "csv/generate.js"),
@@ -82,6 +83,8 @@ async function GenCrudModel() {
     path.join(currentDir, "permission/config.json"),
     path.join(currentDir, "permission/create.js"),
     path.join(currentDir, "permission/delete.js"),
+    path.join(currentDir, "permission/list.js"),
+    path.join(currentDir, "permission/multiModel.js"),
     path.join(currentDir, "permission/patch.js"),
     path.join(currentDir, "permission/read.js"),
     path.join(currentDir, "permission/update.js"),
@@ -93,12 +96,7 @@ async function GenCrudModel() {
     path.join(currentDir, "search/index.js"),
   ];
 
-  let allFilesPaths = [
-    ...pdfFiles,
-    ...csvFiles,
-    ...permissionFiles,
-    ...searchFiles,
-  ];
+  let allFilesPaths = [...csvFiles, ...permissionFiles, ...searchFiles];
 
   for (let i = 0; i < structureObjKeys.length; i++) {
     let structureObjKey = structureObjKeys[i];

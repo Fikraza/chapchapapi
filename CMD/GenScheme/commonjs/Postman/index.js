@@ -1,78 +1,45 @@
-const getAllModels = require("./../Utils/CLI/getAllModels");
+const getStructure = require("./../Utils/CLI/getStructure");
 
-const createCollectionSubFolders = require("./createCollectionSubFolders");
-
-const crudRequest = require("./crudRequest");
-
-const documentRequest = require("./documentRequest");
-
-const createScheme = require("./CreateScheme");
-
-const searchListRequest = require("./crudRequest/searchListRequest");
+const GeneralFolder = require("./General");
+const createScheme = require("./createScheme");
+const { createItemFromPath } = require("./util");
+const core = require("./core");
 
 async function Postman(req, res, next) {
   try {
     // code here
 
-    let models = getAllModels();
+    let generalItem = [];
+    let coreItem = [];
 
-    let ModelKeys = Object.keys(models).sort((a, b) =>
-      a.localeCompare(b, undefined, { sensitivity: "base" })
-    );
+    const collection = [
+      {
+        name: "General",
+        item: generalItem,
+      },
+      { name: "Core", item: coreItem },
+    ];
 
-    const collection = [];
+    const structure = getStructure();
 
-    for (let modelKey of ModelKeys) {
-      const modelName = modelKey;
-      const model = models[modelKey];
+    let structureKeys = Object.keys(structure);
 
-      let allowedMethods = model?.permission?.allowedMethods;
-      const field = model?.field;
-      if (
-        !Array.isArray(allowedMethods) ||
-        allowedMethods?.length == 0 ||
-        !field
-      ) {
-        continue;
-      }
+    GeneralFolder(generalItem);
 
-      const requestObj = createCollectionSubFolders({
-        field: model?.folderPath,
-        collection,
-      });
-
-      let crudItem = crudRequest({ field, methods: allowedMethods, modelName });
-      let documentItem = documentRequest({
-        field,
-        methods: allowedMethods,
-        modelName,
-        csv: model?.csv,
-        pdf: model?.pdf,
-      });
-
-      let searchListItem = searchListRequest({
-        modelName,
-        methods: allowedMethods,
-        search: model?.search,
-      });
-
-      if (searchListItem) {
-        requestObj.push(...searchListItem);
-      }
-
-      requestObj.push(
-        {
-          name: "crud",
-          item: crudItem,
-        },
-        { name: "document", item: documentItem }
-      );
+    for (let i = 0; i < structureKeys.length; i++) {
+      const structureName = structureKeys[i];
+      const structurePath = structure[structureName];
+      let newPath = createItemFromPath({ item: coreItem, structurePath });
+      core({ collection: newPath, model: structureName });
     }
 
-    let schemeRes = await createScheme(collection);
+    //return res.status(200).json(collection);
+    await createScheme(collection);
 
-    res.status(200).json({ schemeRes });
+    return res.status(200).json(collection);
   } catch (e) {
+    console.log(e);
+    console.log(e?.response?.data);
     next(e);
   }
 }

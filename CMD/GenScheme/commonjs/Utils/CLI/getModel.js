@@ -1,91 +1,79 @@
 const getConfig = require("./getConfig");
-const structureArray = require("./structureArray");
-
+const getStructure = require("./getStructure");
 const path = require("path");
-
-const fs = require("fs");
 const process = require("process");
+const fs = require("fs");
 
-function getModel(model) {
+function getModel({ model }) {
   try {
-    const rootDir = process.cwd();
+    const cwd = process.cwd();
+    if (!model) {
+      throw { custom: true, message: "Model is required" };
+    }
+    const config = getConfig();
+    const structure = getStructure();
 
-    if (!model || typeof model !== "string") {
-      return null;
+    if (!config?.baseFolder) {
+      throw { custom: true, message: "", status: 504 };
     }
 
-    let config = getConfig();
+    const modelPath = structure[model?.toLowerCase()];
 
-    let base = config.base;
-
-    if (!base) {
-      throw {};
+    if (!modelPath) {
+      throw {
+        custom: true,
+        message: "Model path not found,Try sync models with prisma",
+      };
     }
 
-    let modeDoc = {};
-    let finalPath = "member";
-
-    if (config?.structure) {
-      const arrSt = structureArray(config?.structure);
-
-      for (let el of arrSt) {
-        let lastEl = el[el?.length - 1];
-
-        if (lastEl === model?.toLowerCase()) {
-          finalPath = path.join(...el);
-          break;
-        }
-      }
-    }
-
-    let fullPath = path.join(
-      rootDir,
-      config.base,
+    //console.log("MODEL PATH", modelPath);
+    const modelDir = path.join(
+      cwd,
+      config.baseFolder,
       "Controller/Scheme/Models",
-      finalPath
+      modelPath
     );
 
-    let fieldPath = path.join(fullPath, "field.json");
-    let includePath = path.join(fullPath, "include.json");
-    let permission = path.join(fullPath, "permission.js");
-    let csv = path.join(fullPath, "csv.js");
-    let search = path?.join(fullPath, "search.json");
-    let pdf = path?.join(fullPath, "pdf.js");
+    const modelObj = {};
+
+    const fieldPath = path.join(modelDir, "field.json");
+    const includePath = path.join(modelDir, "include.json");
+    const csvPath = path.join(modelDir, "csv/index.js");
+    const permissionPath = path.join(modelDir, "permission/index.js");
+    const pdfPath = path.join(modelDir, "pdf/index.js");
+    const searchPath = path.join(modelDir, "search/index.js");
 
     if (fs.existsSync(fieldPath)) {
-      const jsonContent = fs.readFileSync(fieldPath, "utf-8");
-      modeDoc.field = JSON.parse(jsonContent);
+      const field = JSON.parse(fs.readFileSync(fieldPath, "utf-8"));
+
+      modelObj.field = field;
     }
 
     if (fs.existsSync(includePath)) {
-      const jsonContent = fs.readFileSync(includePath, "utf-8");
-      modeDoc.include = JSON.parse(jsonContent);
+      const include = JSON.parse(fs.readFileSync(includePath, "utf-8"));
+      modelObj.include = include;
     }
 
-    if (fs.existsSync(permission)) {
-      const mod = require(permission);
-      modeDoc.permission = mod;
+    if (fs.existsSync(csvPath)) {
+      modelObj.csv = require(csvPath);
     }
 
-    if (fs.existsSync(csv)) {
-      const mod = require(csv);
-      modeDoc.csv = mod;
+    if (fs.existsSync(permissionPath)) {
+      modelObj.permission = require(permissionPath);
     }
 
-    if (fs.existsSync(search)) {
-      const jsonContent = fs.readFileSync(search, "utf-8");
-      modeDoc.search = JSON.parse(jsonContent);
+    if (fs.existsSync(pdfPath)) {
+      modelObj.pdf = require(pdfPath);
     }
 
-    if (fs.existsSync(pdf)) {
-      const mod = require(pdf);
-      modeDoc.pdf = mod;
+    if (fs.existsSync(searchPath)) {
+      modelObj.search = require(searchPath);
     }
 
-    return modeDoc;
+    return modelObj;
   } catch (e) {
     console.log(e);
-    return null;
+    return {};
   }
 }
 

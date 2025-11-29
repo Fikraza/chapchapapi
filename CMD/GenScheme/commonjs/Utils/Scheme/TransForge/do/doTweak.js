@@ -1,4 +1,4 @@
-const tweakFuncs = require("./../tweak");
+const tweakFuncs = require("../tweak");
 const safeCap = require("./safeCap");
 
 async function doTweak({ body, field, tweaks, req }) {

@@ -1,5 +1,9 @@
-async function uploadCSV({ csvRecord, tx, req, index }) {
+async function beforeCsvUpload({ req }) {}
+
+async function upsertRecord({ record, req, index, tx }) {
   return null;
 }
 
-module.exports = uploadCSV;
+async function afterCsvUpload(params) {}
+
+module.exports = { upsertRecord, beforeCsvUpload, afterCsvUpload };

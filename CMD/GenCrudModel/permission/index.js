@@ -4,5 +4,16 @@ const Delete = require("./delete");
 const Patch = require("./patch");
 const Read = require("./read");
 const Update = require("./update");
+const List = require("./list");
+const MultiModel = require("./multiModel");
 
-module.exports = { Config, Create, Delete, Patch, Read, Update };
+module.exports = {
+  Config,
+  Create,
+  Delete,
+  Patch,
+  Read,
+  Update,
+  List,
+  MultiModel,
+};

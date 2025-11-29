@@ -13,6 +13,6 @@ if (args[0]?.toLowerCase() === "init") {
   init();
 }
 
-if (args[0]?.toLocaleLowerCase() === "test") {
-  GenCrudModel();
-}
+// if (args[0]?.toLocaleLowerCase() === "test") {
+//   GenCrudModel();
+// }

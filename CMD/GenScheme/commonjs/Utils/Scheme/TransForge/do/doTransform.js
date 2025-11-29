@@ -1,4 +1,4 @@
-const transformFuncs = require("./../transforms");
+const transformFuncs = require("../transforms");
 
 async function doTransform({ transforms, body, field, excludeInValidation }) {
   if (!transforms) {

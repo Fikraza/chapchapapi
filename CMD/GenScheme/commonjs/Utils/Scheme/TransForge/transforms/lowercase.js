@@ -1,5 +1,8 @@
-function lowercase({ body = {}, field = "" }) {
+function lowercase(obj) {
   try {
+    console.log("Lower Case Transform---->");
+    console.log("Object", obj);
+    const { body = {}, field = "" } = obj;
     const val = body[field];
     if (typeof val !== "string" || val.length === 0) {
       throw { message: "Not a valid string" };

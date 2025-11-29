@@ -1,3 +1,6 @@
-const templateArray = [];
+async function beforeTemplate({ req }) {}
+async function afterTemplate({ req }) {}
 
-module.exports = templateArray;
+const templateHeadArray = ["id", "name", "email"];
+
+module.exports = { templateHeadArray, beforeTemplate, afterTemplate };

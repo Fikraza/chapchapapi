@@ -1,100 +1,96 @@
-const prisma = require("../../Prisma");
-
-const getModel = require("./../Utils/CLI/getModel");
-
-const TransForge = require("./../Utils/Scheme/TransForge");
-
-const CreateReq = require("./Create");
-
-const PatchReq = require("./Patch");
+const prisma = require("./../../Prisma");
+const getModel = require("../Utils/CLI/getModel");
 
 const {
-  checkPermission,
-  buildResponse,
-  handleAfterPermission,
-  handleBeforePermission,
-} = require("./utils");
+  ifmethodNotAllowedThrowError,
+  beforeRequestPermissionCheck,
+  afterRequestPermissionCheck,
+} = require("./utils/permissionChecker");
+
+const { pruneBodyByFields } = require("./utils/helpers");
+
+const transForge = require("./utils/transForge");
 
 async function Update(req, res, next) {
   try {
-    // code here
-
     const { model } = req.params;
-    const body = req?.body;
+    const body = req.body;
+
     const id = body?.id;
 
-    const modelDoc = getModel(model);
-
-    const { field, permission } = modelDoc;
-
-    if (!field) {
-      throw {
-        custom: true,
-        message: "Model not supported for Scheme",
-        status: 500,
-      };
+    if (id) {
+      delete body.id;
     }
-    await checkPermission(modelDoc, "POST");
 
-    const excludeInValidation = ["id"];
+    const modelObj = getModel({ model });
+
+    if (!modelObj) {
+      throw { custom: true, message: "Model not supported for update" };
+    }
+
+    const field = modelObj?.field;
+
+    const permission = modelObj?.permission;
+
+    const permisionConfig = permission?.Config;
+
+    ifmethodNotAllowedThrowError({ permisionConfig, method: "PUT" });
+    pruneBodyByFields({ body, field, pruneSkipUpdate: id ? true : false });
+
+    let responseObject = { _message: id ? "Record updated" : "Record created" };
+
+    await transForge({
+      fields: field,
+      req,
+      body,
+      skipUndefined: id ? true : false,
+      model,
+    });
+
+    await beforeRequestPermissionCheck({
+      req,
+      body,
+      beforeReqFunction: permission?.Update?.beforeUpdate,
+      responseObject,
+    });
 
     let record = null;
 
-    if (id) {
-      record = await prisma[model].findUnique({
+    if (!id) {
+      record = await prisma[model].create({
+        data: body,
+      });
+    } else {
+      const recordExist = await prisma[model].findUnique({
+        where: { id },
+      });
+
+      if (!recordExist) {
+        throw {
+          custom: true,
+          message: `Record with id ${id} not found in model ${model}`,
+        };
+      }
+
+      record = await prisma[model].update({
         where: {
           id,
         },
+        data: body,
       });
-
-      if (!record) {
-        throw { custom: true, message: "Record with id doesn't  exist" };
-      }
     }
 
-    let data = {};
-
-    for (let key of Object.keys(body)) {
-      if (key === "id") {
-        continue;
-      }
-      let fieldVal = field[key];
-      let bodyVal = body[key];
-      let recordVal = record ? record[key] : null;
-      if (fieldVal === undefined || bodyVal === undefined) {
-        excludeInValidation.push(key);
-        continue;
-      }
-
-      if (bodyVal === recordVal) {
-        continue;
-      }
-
-      data[key] = bodyVal;
-    }
-
-    await TransForge({
-      field,
-      model,
-      body: data,
-      isPatch: true,
-      excludeInValidation,
+    responseObject = { ...responseObject, ...record };
+    await afterRequestPermissionCheck({
+      req,
+      record,
+      afterReqFunction: permission?.Update?.afterUpdate,
+      responseObject,
     });
 
-    // uncomment for auto updates
-    if (field.updated_at) {
-      data.updated_at = updated_at;
-    }
-
-    if (id) {
-      data.id = id;
-      req.body = data;
-      PatchReq(req, res, next);
-    } else {
-      req.body = data;
-      CreateReq(req, res, next);
-    }
+    return res.status(200).json(responseObject);
   } catch (e) {
+    console.log(e);
     next(e);
   }
 }
