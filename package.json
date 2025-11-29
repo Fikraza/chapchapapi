@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Your Name",
+  "author": "Arthur Codex",
   "license": "MIT",
   "dependencies": {
     "@inquirer/input": "^3.0.0",
