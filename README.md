@@ -110,7 +110,7 @@ MINIO_ROOT_PASSWORD=
 # 📦 Required NPM Packages in Your Project
 
 ```bash
-npm install prisma minio multer uuid dotenv csv-parser fuse-js
+npm install prisma minio multer uuid dotenv csv-parser fuse.js
 ```
 
 ---
