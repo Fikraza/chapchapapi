@@ -1,56 +1,113 @@
-# ❤️ Sponsor This Project
+# Chapchapapi CLI
 
-If you find **chapchapapi CLI** useful and would like to support its
-ongoing development, consider sponsoring the project.\
-Your contribution helps keep this project maintained and growing.
+> An open-source Node.js CLI tool that reads your Prisma schema and automatically generates CRUD APIs and supporting utilities for Express-based projects.
 
-[![Donate with
-PayPal](https://img.shields.io/badge/Donate-PayPal-blue?logo=paypal)](https://www.paypal.com/donate/?hosted_button_id=244NK5AWBKPFN)
+[![npm version](https://img.shields.io/npm/v/chapchapapi.svg)](https://www.npmjs.com/package/chapchapapi)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)](https://nodejs.org)
 
----
+Chapchapapi removes repetitive backend work by generating controllers, services, routes, search, pagination, CSV import/export, file uploads, and Postman collections from your existing Prisma setup.
 
-# 🪙 Chapchapapi CLI
-
-**chapchapapi** is an open-source Node.js CLI tool that reads your
-Prisma schema and instantly generates:
-
-- ✅ CRUD boilerplate (controllers, services, routes)\
-- ✅ Postman-ready REST API collections\
-- ✅ Search, pagination, CSV import/export endpoints\
-- ✅ MinIO-based file/document upload utilities
-
-It automates up to **80% of repetitive API development** in Prisma +
-Express projects.
+**Automate up to 80% of repetitive API development in Prisma + Express projects.**
 
 ---
 
 ## ✨ Features
 
-- 🔍 Parses `schema.prisma` automatically\
-- ⚙️ Generates complete CRUD endpoints\
-- 📬 Builds Postman collections with folders + sample requests\
-- 🧾 CSV import/export support\
-- 🔐 MinIO document upload utilities\
-- 🎨 Beautiful interactive CLI using `inquirer`\
-- ⚡ Fast, clean, developer-friendly workflow
+- 🔍 **Automatic Schema Parsing** - Reads `schema.prisma` automatically
+- 🚀 **Complete CRUD Generation** - Controllers, services, and routes out of the box
+- 📮 **Postman Collections** - Pre-built collections with folders and sample requests
+- 📊 **CSV Import/Export** - Built-in CSV handling for all models
+- 📁 **File Upload Support** - MinIO-based document and file upload utilities
+- 🎯 **Interactive CLI** - User-friendly interface using Inquirer
+- ⚡ **Fast & Clean** - Developer-friendly workflow with smart folder structures
 
 ---
 
-# 🚀 Installation
+## 📦 What Chapchapapi Generates
 
-### **Install globally:**
+From your Prisma schema, Chapchapapi automatically creates:
+
+- ✅ CRUD controllers, services, and routes
+- ✅ Search and pagination logic
+- ✅ CSV import and export endpoints
+- ✅ File and document upload utilities (MinIO-based)
+- ✅ Postman collections with folders and example requests
+
+---
+
+## 👥 Who This Tool Is For
+
+This tool is designed for developers already familiar with:
+
+- Node.js and Express
+- Prisma ORM
+- Relational databases (PostgreSQL, MySQL, etc.)
+- REST APIs
+- Environment variables and `.env` files
+
+**Note:** Chapchapapi assumes you already have a working Prisma project.
+
+---
+
+## 📋 Prerequisites
+
+Before running Chapchapapi, ensure you have:
+
+- ✅ A Node.js backend project
+- ✅ Prisma installed and configured
+- ✅ A valid `schema.prisma` file
+- ✅ Your database schema synced with Prisma
+
+---
+
+## 🛠️ Setting Up Prisma
+
+If Prisma is not already set up in your project:
+
+```bash
+npm install prisma --save-dev
+npx prisma init
+```
+
+### Example `schema.prisma`:
+
+```prisma
+model candidate {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+}
+```
+
+### Sync Prisma with your database:
+
+```bash
+# If creating a new migration
+npx prisma migrate dev
+
+# If database already exists
+npx prisma db pull
+```
+
+---
+
+## 📥 Installation
+
+### Global Installation
 
 ```bash
 npm install -g chapchapapi
 ```
 
-Then initialize your backend project:
+Run the CLI:
 
 ```bash
 chapchapapi init
 ```
 
-### **Run without installing:**
+### One-Time Usage
 
 ```bash
 npx chapchapapi init
@@ -58,66 +115,228 @@ npx chapchapapi init
 
 ---
 
-# 🔧 Required Environment Variables
+## 🚀 Getting Started
 
-Add the following variables to your `.env` file depending on your
-project features.
+Run the command from the root of your project:
+
+```bash
+chapchapapi init
+```
+
+### Step 1: Base Folder Name
+
+You'll be prompted to enter a base folder name:
+
+```
+Enter base folder name
+(APP)
+```
+
+Press **Enter** to use `APP` or type a custom name. This folder will contain all generated API logic.
+
+### Step 2: Folder Structure Type
+
+Choose your preferred folder structure:
+
+```
+Choose folder structure type:
+1. Smart (recommended)
+2. General
+```
+
+#### Smart Structure (Recommended)
+- Groups models by domain
+- Scales well for large Prisma schemas
+- Prevents cluttered flat structures
 
 ---
 
-## **Postman Integration**
+## 📂 Generated Folder Structure
 
-These are required for auto-generating Postman collections:
+After generation, navigate to your base folder:
+
+```bash
+cd APP
+```
+
+### Root Structure
+
+```
+APP/
+└── Controller/
+    └── Scheme/
+        └── Models/
+            ├── candidate/
+            ├── county/
+            ├── tribe/
+            ├── service/
+            └── training_center/
+```
+
+### Inside a Model Folder
+
+Example: `Models/candidate/candidate/`
+
+```
+candidate/
+├── csv/                  # CSV import/export configuration
+├── search/               # Search configuration (Fuse.js)
+├── permission/           # Role-based access control
+├── field.json           # Field definitions for CRUD operations
+└── include.json         # Prisma relations configuration
+```
+
+#### `field.json`
+Defines allowed fields for create, update, filtering, and listing operations.
+
+#### `include.json`
+Controls Prisma include relations for eager loading related data.
+
+**Example:**
+```json
+{
+  "tribe": true,
+  "county": true
+}
+```
+
+#### `search/`
+Contains configuration for searchable fields using **Fuse.js** for fast and flexible searching.
+
+#### `csv/`
+CSV import/export endpoints with templates and test data for all CRUD operations.
+
+#### `permission/`
+Reserved for role-based access control and authorization logic.
+
+---
+
+## 📮 Postman Integration
+
+Chapchapapi automatically creates Postman collections for each model:
+
+- ✅ Folder structure in Postman
+- ✅ CRUD requests (Create, Read, Update, Delete)
+- ✅ CSV import/export requests
+- ✅ Search and pagination requests
+- ✅ Pre-filled sample test data
+
+---
+
+## 📦 Required Dependencies
+
+Install the required dependencies in your project:
+
+```bash
+npm install prisma minio multer uuid dotenv csv-parser fuse.js
+```
+
+### Dependency Explanation
+
+| Package | Purpose |
+|---------|---------|
+| `prisma` | Database access via Prisma Client |
+| `minio` | File and document storage |
+| `multer` | Handles file uploads |
+| `uuid` | Generates unique identifiers |
+| `dotenv` | Loads environment variables |
+| `csv-parser` | CSV import and export |
+| `fuse.js` | Fast fuzzy search |
+
+---
+
+## ⚙️ Environment Variables
+
+Create a `.env` file in your project root:
+
+### Postman Integration
 
 ```env
 POSTMAN_API_KEY=""
 POSTMAN_WORKSPACE=""
 ```
 
-### 🔐 How to Get Your Postman API Key
+#### 🔐 How to Get Your Postman API Key
 
-1.  Login to Postman\
-2.  Visit:\
-    **https://www.postman.com/settings/me/api-keys**\
-3.  Click **Generate API Key**\
-4.  Copy and paste into your `.env`
+1. Login to Postman
+2. Visit: **https://www.postman.com/settings/me/api-keys**
+3. Click **Generate API Key**
+4. Copy and paste into your `.env`
 
-### 🧭 How to Find Your Postman Workspace ID
+#### 🧭 How to Find Your Postman Workspace ID
 
-1.  Open your workspace in Postman\
+1. Open your workspace in Postman
+2. Look at the URL:
+   ```
+   https://www.postman.com/<username>/workspaces/<workspace-id>
+   ```
+3. Copy the `<workspace-id>` section
+4. Paste into your `.env`
 
-2.  Look at the URL:
-
-        https://www.postman.com/<username>/workspaces/<workspace-id>
-
-3.  Copy the `<workspace-id>` section\
-
-4.  Paste into your `.env`
-
----
-
-## **Document Handling (MinIO)**
-
-Required if your project deals with documents, images, or file uploads.
+### MinIO Configuration
 
 ```env
-MINIO_ROOT_USER=
-MINIO_ROOT_PASSWORD=
+MINIO_ROOT_USER=""
+MINIO_ROOT_PASSWORD=""
 ```
 
 ---
 
-# 📦 Required NPM Packages in Your Project
+## 🔧 Configuration
 
-```bash
-npm install prisma minio multer uuid dotenv csv-parser fuse-js
+Configuration files are created in the project root:
+
+```
+chapchapapi/
+├── config.json
+└── structure.json
+```
+
+### `structure.json`
+
+Maps Prisma models to generated folder paths.
+
+**Example:**
+```json
+{
+  "candidate": "candidate/candidate",
+  "candidate_affidavit": "candidate/candidate_affidavit",
+  "tribe": "tribe",
+  "training_center": "training_center"
+}
 ```
 
 ---
 
-# 🧰 Commands
+## ➕ Adding New Prisma Models
 
-### **Initialize a new generator setup**
+After adding a new Prisma model:
+
+1. Run `npx prisma db pull`
+2. Update `structure.json` manually
+
+**Example:**
+
+```prisma
+model school {
+  id   String @id @default(uuid())
+  name String
+}
+```
+
+Add to `structure.json`:
+
+```json
+{
+  "school": "school"
+}
+```
+
+---
+
+## 💻 CLI Commands
+
+Initialize generation:
 
 ```bash
 chapchapapi init
@@ -131,27 +350,54 @@ npx chapchapapi init
 
 ---
 
-# 🗺 Roadmap
+## 🗺️ Roadmap
 
-- [ ] Add JWT authentication scaffolding\
-- [ ] Support for NestJS\
-- [ ] Support for TypeScript\
-- [ ] GraphQL endpoint generation\
-- [ ] Swagger/OpenAPI auto-generation\
-- [ ] CLI plugin system
-
----
-
-# 🤝 Contributing
-
-Contributions are welcome!
-
-1.  Fork repo\
-2.  Create feature branch\
-3.  Submit PR
+- [ ] JWT authentication scaffolding
+- [ ] TypeScript support
+- [ ] NestJS support
+- [ ] GraphQL endpoint generation
+- [ ] Swagger/OpenAPI generation
+- [ ] Plugin system
 
 ---
 
-# 📄 License
+## 💖 Sponsor This Project
+
+If you find Chapchapapi useful and would like to support its continued development, consider sponsoring the project.
+
+Your contribution helps keep the project maintained and growing.
+
+[![PayPal](https://img.shields.io/badge/PayPal-Donate-blue.svg)](https://www.paypal.com/donate/?hosted_button_id=244NK5AWBKPFN)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
 
 MIT License © 2025 Arthur Codex
+
+---
+
+## 🏷️ Keywords
+
+`prisma` · `cli` · `code-generator` · `crud` · `express` · `nodejs` · `api` · `rest-api` · `backend` · `automation` · `prisma-generator` · `express-api` · `crud-generator` · `postman` · `csv` · `file-upload` · `minio` · `search` · `pagination` · `scaffolding`
+
+---
+
+<div align="center">
+  
+**Made with ❤️ by Arthur Codex**
+
+
+</div>
