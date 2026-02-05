@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "A Node.js CLI tool for automating CRUD, search, pagination, and CSV endpoints in Prisma + Express projects.",
   "bin": {
-    "chapchapapi": "./index.js"
+    "chapchapapi": "index.js"
   },
   "scripts": {
     "start": "node index.js"
@@ -33,5 +33,13 @@
     "chalk": "^4.1.2",
     "crypto": "^1.0.1",
     "wrap-ansi": "^7.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fikraza/chapchapapi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Fikraza/chapchapapi/issues"
+  },
+  "homepage": "https://github.com/Fikraza/chapchapapi#readme"
 }
