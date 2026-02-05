@@ -1,6 +1,6 @@
 {
   "name": "chapchapapi",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "A Node.js CLI tool for automating CRUD, search, pagination, and CSV endpoints in Prisma + Express projects.",
   "bin": {
     "chapchapapi": "index.js"
