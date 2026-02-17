@@ -471,7 +471,7 @@ MIT License © 2025 Arthur Codex
 
 ## 👨‍💻 Author
 
-**Arthur Codex** - Original Developer
+**Arthur Codex** - Developer
 
 **Documentation by:** [Neemat Rashid](https://github.com/Neematrasheed05)
 
