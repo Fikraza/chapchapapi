@@ -95,23 +95,29 @@ npx prisma db pull
 
 ## 📥 Installation
 
-### Global Installation
+### Global Installation (Recommended)
+
+Install Chapchapapi globally to use the `chapchapapi` command:
 
 ```bash
 npm install -g chapchapapi
 ```
 
-Run the CLI:
+Then run:
 
 ```bash
 chapchapapi init
 ```
 
-### One-Time Usage
+### One-Time Usage (Without Global Install)
+
+If you prefer not to install globally, use `npx`:
 
 ```bash
 npx chapchapapi init
 ```
+
+> **Note:** To use the `chapchapapi` command directly (without `npx`), you **must** install it globally using `npm install -g chapchapapi`.
 
 ---
 
@@ -149,33 +155,76 @@ Choose folder structure type:
 - Scales well for large Prisma schemas
 - Prevents cluttered flat structures
 
+### Step 3: ⚠️ Safety Confirmation Code
+
+**CRITICAL STEP:** After selecting your folder structure, you'll see this safety warning:
+
+```
+⚠️  WARNING: This operation will overwrite existing scheme files!
+If any of the files already exist, their contents WILL BE LOST.
+If you prefer, you can create the scheme files manually instead.
+
+To proceed, type the following 6-digit code exactly as shown:
+>>> 789689
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+#### What Happens Based on Your Choice:
+
+**✅ If you enter the code (`789689`):**
+- **Complete folder structure** is generated with all features
+- All controllers, routes, middleware, and business logic are created
+- Full API structure ready for production use
+
+```bash
+cd APP
+ls
+# Output: Controller  Middleware  Routes
+```
+
+**❌ If you skip or ignore the code:**
+- **Only basic structure** is created
+- Only the `Controller` folder is generated
+- No routes, middleware, or complete logic files
+- You'll need to manually create additional components
+
+```bash
+cd APP
+ls
+# Output: Controller
+```
+
+**💡 Recommendation:** Always enter the confirmation code (`789689`) to get the full functionality and save hours of manual setup.
+
 ---
 
 ## 📂 Generated Folder Structure
 
-After generation, navigate to your base folder:
+After successful generation (when you entered the confirmation code), navigate to your base folder:
 
 ```bash
 cd APP
 ```
 
-### Root Structure
+### Complete Structure
 
 ```
 APP/
-└── Controller/
-    └── Scheme/
-        └── Models/
-            ├── candidate/
-            ├── county/
-            ├── tribe/
-            ├── service/
-            └── training_center/
+├── Controller/
+│   └── Scheme/
+│       └── Models/
+│           ├── candidate/
+│           ├── county/
+│           ├── tribe/
+│           ├── service/
+│           └── training_center/
+├── Middleware/
+└── Routes/
 ```
 
 ### Inside a Model Folder
 
-Example: `Models/candidate/candidate/`
+Example: `Controller/Scheme/Models/candidate/candidate/`
 
 ```
 candidate/
@@ -220,6 +269,31 @@ Chapchapapi automatically creates Postman collections for each model:
 - ✅ CSV import/export requests
 - ✅ Search and pagination requests
 - ✅ Pre-filled sample test data
+
+### 🚀 Generating Postman Collections
+
+After setting up your Postman API key and workspace ID in `.env`, generate test routes for all your models by making a **GET request** to:
+
+```
+GET /scheme/postman
+```
+
+This endpoint will:
+- Read all your Prisma models
+- Generate a complete Postman collection
+- Create organized folders for each model
+- Add pre-configured requests with sample data
+- Automatically import to your Postman workspace
+
+**Example using cURL:**
+```bash
+curl http://localhost:3000/scheme/postman
+```
+
+**Example using your browser:**
+```
+http://localhost:3000/scheme/postman
+```
 
 ---
 
@@ -342,7 +416,7 @@ Initialize generation:
 chapchapapi init
 ```
 
-or
+or (without global install):
 
 ```bash
 npx chapchapapi init
@@ -395,9 +469,20 @@ MIT License © 2025 Arthur Codex
 
 ---
 
+## 👨‍💻 Author
+
+**Arthur Codex** - Developer
+
+**Documentation by:** [Neemat Rashid](https://github.com/Neematrasheed05)
+
+---
+
 <div align="center">
   
 **Made with ❤️ by Arthur Codex**
 
+**README Documentation by [Neemat Rashid](https://github.com/Neematrasheed05)**
+
+[⭐ Star this repo](https://github.com/Fikraza/chapchapapi) if you find it helpful!
 
 </div>
