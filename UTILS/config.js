@@ -75,7 +75,9 @@ function projectIsModuleBased() {
   }
 
   const jsonContent = fs.readFileSync(package_json_path, "utf-8");
-  if (jsonContent.type === "module") {
+  const packageJson = JSON.parse(jsonContent);
+
+  if (packageJson.type === "module") {
     return "module";
   }
 

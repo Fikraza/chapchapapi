@@ -34,7 +34,7 @@ async function Init() {
   if (config) {
     const proceed = await confirm({
       message: cliMessage.warning(
-        `Existing Configuration found.Do you want to continue initalization process?`
+        `Existing Configuration found.Do you want to continue initalization process?`,
       ),
       default: false,
     });
