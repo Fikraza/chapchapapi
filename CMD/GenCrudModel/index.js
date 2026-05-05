@@ -45,7 +45,7 @@ async function GenCrudModel() {
   const moduleBase = projectIsModuleBased();
   if (moduleBase !== "commonjs") {
     cliMessage.printError(
-      "chapchapapi only supports module-based JS at this point"
+      "chapchapapi only supports module-based JS at this point",
     );
     return;
   }
@@ -62,7 +62,7 @@ async function GenCrudModel() {
   const baseModelFolder = path.join(
     cwd,
     config.baseFolder,
-    "Controller/Scheme/Models"
+    "Controller/Scheme/Models",
   );
 
   //Comming soon
@@ -107,7 +107,7 @@ async function GenCrudModel() {
 
     if (!model) {
       cliMessage.printWarning(
-        `Model ${structureObjKey} not found in prisma\n.Skipping`
+        `Model ${structureObjKey} not found in prisma\n.Skipping`,
       );
       continue;
     }
@@ -148,7 +148,7 @@ async function GenCrudModel() {
         baseModelFolder,
         structurePath,
         parsedPath.parent,
-        parsedPath.filename
+        parsedPath.filename,
       );
 
       if (!fs.existsSync(toFilePath)) {

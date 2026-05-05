@@ -32,7 +32,7 @@ async function GenScheme() {
   const moduleBase = projectIsModuleBased();
   if (moduleBase !== "commonjs") {
     cliMessage.printError(
-      "chapchapapi only supports module-based JS at this point"
+      "chapchapapi only supports module-based JS at this point",
     );
     return;
   }
@@ -78,13 +78,13 @@ async function GenScheme() {
 
   await copyDirContents(
     path.join(currentDir, "otherCommonjs"),
-    path.join(cwd, config.baseFolder)
+    path.join(cwd, config.baseFolder),
   );
 
   //copy prisma folder and business folder
   await copyDirContents(
     path.join(currentDir, "BusinessAndPrisma"),
-    path.join(cwd, config.baseFolder, "Controller")
+    path.join(cwd, config.baseFolder, "Controller"),
   );
 
   cliMessage.printSuccess("✅ Scheme files generated successfully!");
