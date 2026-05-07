@@ -56,6 +56,8 @@ async function List(req, res, next) {
       orderBy,
     });
 
+    //throw { custom: true, message: "Before requiest permission check" };
+
     const pageNumber = parseInt(page) || 1;
     const pageLimit = parseInt(limit) || 10;
     const total = await prisma[model].count({ where });
@@ -63,13 +65,15 @@ async function List(req, res, next) {
     const pageCount = Math.ceil(total / pageLimit);
     const offset = pageNumber > 1 ? pageNumber * pageLimit - pageLimit : 0;
 
-    const items = await prisma[model].findMany({
-      where,
-      include,
-      orderBy,
-      skip: offset,
-      take: pageLimit,
-    });
+    const listObj = { where, include, orderBy };
+
+    if (limit !== "all") {
+      listObj.take = pageLimit;
+      listObj.skip = offset;
+    }
+
+    const items = await prisma[model].findMany(listObj);
+
     const pagination = {
       total,
       limit,

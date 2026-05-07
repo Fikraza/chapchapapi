@@ -32,28 +32,36 @@ async function Read(req, res, next) {
 
     ifmethodNotAllowedThrowError({ permisionConfig, method: "GET" });
     let responseObject = {};
+    await prisma.$transaction(
+      async (tx) => {
+        await beforeRequestPermissionCheck({
+          req,
+          beforeReqFunction: permission?.Read?.beforeRead,
+          responseObject,
+          tx,
+        });
 
-    await beforeRequestPermissionCheck({
-      req,
-      beforeReqFunction: permission?.Read?.beforeRead,
-      responseObject,
-    });
+        const record = await tx[model].findUnique({
+          where: {
+            id,
+          },
+          include: modelObj?.include || {},
+        });
 
-    const record = await prisma[model].findUnique({
-      where: {
-        id,
+        await afterRequestPermissionCheck({
+          req,
+          tx,
+          record,
+          afterReqFunction: permission?.Read?.afterRead,
+          responseObject,
+        });
+
+        responseObject = { ...responseObject, ...record };
       },
-      include: modelObj?.include || {},
-    });
-
-    responseObject = { ...responseObject, ...record };
-
-    await afterRequestPermissionCheck({
-      req,
-      record,
-      afterReqFunction: permission?.Read?.afterRead,
-      responseObject,
-    });
+      {
+        timeout: 40000,
+      },
+    );
 
     return res.status(200).json(responseObject);
   } catch (e) {

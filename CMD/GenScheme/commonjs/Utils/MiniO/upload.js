@@ -3,7 +3,7 @@ const minioClient = require("./client");
 
 async function uploadFile({ filePath, bucketName, saveAsName }) {
   try {
-    console.log(filePath);
+    // console.log(filePath);
 
     // Check file exists
     if (!fs.existsSync(filePath)) {
@@ -30,7 +30,7 @@ async function uploadFile({ filePath, bucketName, saveAsName }) {
       bucketName,
       saveAsName,
       fileStream,
-      fileStat.size
+      fileStat.size,
     );
 
     return {

@@ -26,11 +26,16 @@ async function Upsert(req, res, next) {
     }
 
     const body = { ...allfiles, ...originalBody };
+
+    // console.log("BODY ", body);
+
     if (id) {
       delete body.id;
     }
 
     const modelObj = getModel({ model });
+
+    console.log("modelObj ---> ", modelObj);
 
     if (!modelObj) {
       throw { custom: true, message: "Model not supported for create" };
@@ -59,6 +64,7 @@ async function Upsert(req, res, next) {
       req,
       body,
       skipUndefined: id ? true : false,
+      model,
     });
 
     await beforeRequestPermissionCheck({

@@ -3,17 +3,30 @@ const path = require("path");
 const miniO = require("./../../../../Utils/MiniO");
 const fs = require("fs");
 
+function sanitizeBucketName(name) {
+  return name
+    .toLowerCase()
+    .replace(/_/g, "-")
+    .replace(/[^a-z0-9.-]/g, "");
+}
+
 async function file(obj) {
-  const { body, field, tweakObj } = obj;
+  const { body, field, tweakObj, model } = obj;
   const cwd = process.cwd();
-  console.log("body-->", body);
-  console.log("field--->", field);
-  console.log("tweakObject--->", tweakObj);
+
+  if (!model) {
+    throw {
+      custom: true,
+      message: "Model name required for saving files",
+      status: 500,
+    };
+  }
 
   let filename = body[field];
-  console.log("filename is", filename);
 
   if (!filename) {
+    //best fix
+    return;
     throw { custom: true, message: `File required` };
   }
 
@@ -23,10 +36,7 @@ async function file(obj) {
     console.log("File exists");
   }
 
-  // throw { custom: true, message: "" };
-  const fieldArray = field.split("_");
-
-  const bucketName = fieldArray[0];
+  const bucketName = sanitizeBucketName(model);
 
   const ext = path.extname(filename);
 
@@ -42,14 +52,27 @@ async function file(obj) {
       };
     }
   }
+  if (Array.isArray(tweakObj.mime)) {
+    if (!tweakObj.mimes.includes(ext)) {
+      let mimeMessage =
+        typeof tweakObj?._message === "string"
+          ? tweakObj?._message
+          : `Invalid file type`;
+      throw {
+        custom: true,
+        _message: mimeMessage,
+      };
+    }
+  }
 
-  let fileSavedAs = `${bucketName}_${filename}`;
+  let fileSavedAs = `[${model}]${filename}`;
 
   let miniObject = await miniO.upload({
     filePath: multerFilePath,
     bucketName,
     saveAsName: fileSavedAs,
   });
+  console.log(miniObject);
   if (!miniObject) {
     throw {
       custom: true,

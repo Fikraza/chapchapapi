@@ -33,20 +33,24 @@ async function Delete(req, res, next) {
 
     const permisionConfig = permission?.Config;
 
+    console.log("DELETE PERMISSION CONFIG IS,", permisionConfig);
+
+    // throw { custom: true, message: "Delete not available at the minute" };
     ifmethodNotAllowedThrowError({ permisionConfig, method: "DELETE" });
 
     let responseObject = { _message: "Record deleted" };
-
-    await beforeRequestPermissionCheck({
-      req,
-      beforeReqFunction: permisionConfig?.Delete?.beforeDelete,
-      responseObject,
-    });
 
     let record = null;
 
     const transaction = await prisma.$transaction(
       async (tx) => {
+        await beforeRequestPermissionCheck({
+          req,
+          tx,
+          beforeReqFunction: permission?.Delete?.beforeDelete,
+          responseObject,
+        });
+
         const recordExists = await tx[model].findUnique({
           where: {
             id,
@@ -62,18 +66,18 @@ async function Delete(req, res, next) {
             id,
           },
         });
+        responseObject = { ...responseObject, ...record };
+
+        await afterRequestPermissionCheck({
+          req,
+          tx,
+          record,
+          afterReqFunction: permission?.Delete?.afterDelete,
+          responseObject,
+        });
       },
-      { timeout: 60000 }
+      { timeout: 40000 },
     );
-
-    responseObject = { ...responseObject, ...record };
-
-    await afterRequestPermissionCheck({
-      req,
-      record,
-      afterReqFunction: permission?.Delete?.afterDelete,
-      responseObject,
-    });
 
     return res.status(200).json(responseObject);
   } catch (e) {

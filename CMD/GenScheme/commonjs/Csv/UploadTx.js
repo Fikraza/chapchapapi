@@ -5,20 +5,14 @@ const {
   ifmethodNotAllowedThrowError,
   beforeRequestPermissionCheck,
   afterRequestPermissionCheck,
+  beforeTransforgeCheck,
 } = require("../Crud/utils/permissionChecker");
-
-const QueryFilter = require("../Utils/QueryFilter");
-const handleOrderQuery = require("./../Utils/General/handleOrderQuery");
 
 const fs = require("fs");
 const path = require("path");
 const process = require("process");
 
-const {
-  getNestedValueFromObj,
-  escapeCsvValue,
-  csvToJson,
-} = require("./../Utils/General");
+const { csvToJson } = require("./../Utils/General");
 
 const { pruneBodyByFields } = require("./../Crud/utils/helpers");
 
@@ -48,7 +42,7 @@ async function Upload(req, res, next) {
     const modelObj = getModel({ model });
 
     if (!modelObj) {
-      throw { custom: true, message: "Model not supported for get" };
+      throw { custom: true, message: "Model not supported for upsert" };
     }
 
     const field = modelObj?.field;
@@ -64,7 +58,7 @@ async function Upload(req, res, next) {
     const permission = modelObj?.permission;
     const permisionConfig = permission?.Config;
 
-    const csvUpload = modelObj?.csv?.Upload;
+    const csvUpload = modelObj?.csv?.UploadTx;
 
     ifmethodNotAllowedThrowError({ permisionConfig, method: "PUT" });
 
@@ -85,85 +79,115 @@ async function Upload(req, res, next) {
       };
     }
 
-    await beforeRequestPermissionCheck({
-      req,
-      csvItems,
-      beforeReqFunction: csvUpload?.beforeCsvUpload,
-    });
-
-    const upsertRecordFunction = csvUpload?.upsertRecord;
-
-    if (typeof upsertRecordFunction !== "function") {
-      throw {
-        custom: true,
-        message: `Callback function for single record upsert upsertRecord`,
-        status: 500,
-      };
-    }
-
     let created = 0;
     let updated = 0;
 
-    const transaction = await prisma.$transaction(async (tx) => {
-      for (let i = 0; i < csvItems.length; i++) {
-        const csvRecord = csvItems[i];
-        const id = csvRecord.id;
-
-        // console.log("id is", id);
-
-        delete csvRecord.id;
-        // console.log(csvRecord);
-
-        pruneBodyByFields({
-          body: csvRecord,
-          field,
-          pruneSkipUpdate: id ? true : false,
-        });
-        await transForge({
-          fields: field,
+    const transaction = await prisma.$transaction(
+      async (tx) => {
+        await beforeRequestPermissionCheck({
+          tx,
           req,
-          body: csvRecord,
-          skipUndefined: id ? true : false,
-          model,
+          csvItems,
+          beforeReqFunction: csvUpload?.beforeCsvUpload,
         });
 
-        await upsertRecordFunction({ record: csvRecord, index: i, req });
+        const upsertRecordFunction = csvUpload?.upsertRecord;
+        const beforeTransForge = csvUpload?.beforeTransForge;
 
-        if (id) {
-          // console.log("doing an update");
-          const recordExist = await tx[model].findUnique({
-            where: { id },
+        if (typeof upsertRecordFunction !== "function") {
+          throw {
+            custom: true,
+            message: `Callback function for single record upsert upsertRecord`,
+            status: 500,
+          };
+        }
+
+        for (let i = 0; i < csvItems.length; i++) {
+          const csvRecord = csvItems[i];
+          const originalCsvRecord = csvItems[i];
+          const id = csvRecord.id;
+
+          // console.log("id is", id);
+
+          delete csvRecord.id;
+          // console.log(csvRecord);
+
+          pruneBodyByFields({
+            body: csvRecord,
+            field,
+            pruneSkipUpdate: id ? true : false,
           });
-          if (!recordExist) {
-            throw {
-              custom: true,
-              message: `Record with id ${id} not found in model ${model}`,
-            };
-          }
-          await tx[model].update({
-            where: {
+
+          if (typeof beforeTransForge === "function") {
+            await beforeTransForge({
+              csvRecord,
+              originalCsvRecord,
+              tx,
+              req,
+              index: i,
               id,
-            },
+            });
+          }
+
+          await transForge({
+            fields: field,
+            req,
+            body: csvRecord,
+            skipUndefined: id ? true : false,
+            model,
+          });
+
+          let shouldUpsertRecord = await upsertRecordFunction({
+            record: csvRecord,
+            originalCsvRecord,
+            index: i,
+            req,
+            tx,
+          });
+
+          if (shouldUpsertRecord === false) {
+            continue;
+          }
+
+          if (id) {
+            // console.log("doing an update");
+            const recordExist = await tx[model].findUnique({
+              where: { id },
+            });
+            if (!recordExist) {
+              throw {
+                custom: true,
+                message: `Record with id ${id} not found in model ${model}`,
+              };
+            }
+            await tx[model].update({
+              where: {
+                id,
+              },
+              data: csvRecord,
+            });
+            updated++;
+            continue;
+          }
+
+          await tx[model].create({
             data: csvRecord,
           });
-          updated++;
+          created++;
           continue;
         }
 
-        await tx[model].create({
-          data: csvRecord,
+        await afterRequestPermissionCheck({
+          tx,
+          req,
+          csvItems,
+          created,
+          updated,
+          afterReqFunction: csvUpload?.afterCsvUpload,
         });
-        created++;
-        continue;
-      }
-    });
-    await afterRequestPermissionCheck({
-      req,
-      csvItems,
-      created,
-      updated,
-      afterReqFunction: csvUpload?.afterCsvUpload,
-    });
+      },
+      { timeout: 40000 },
+    );
 
     return res
       .status(200)

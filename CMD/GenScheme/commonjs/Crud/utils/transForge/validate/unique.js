@@ -6,7 +6,6 @@ async function unique({ req, body, field, validationObj, model }) {
 
   const whereObj = {};
   whereObj[field] = val;
-  console.log(model);
 
   const record = await prisma[model].findUnique({
     where: whereObj,

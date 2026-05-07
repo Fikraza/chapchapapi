@@ -4,6 +4,7 @@ const getModel = require("../Utils/CLI/getModel");
 const {
   ifmethodNotAllowedThrowError,
   beforeRequestPermissionCheck,
+  beforeTransforgeCheck,
   afterRequestPermissionCheck,
 } = require("./utils/permissionChecker");
 
@@ -39,58 +40,74 @@ async function Update(req, res, next) {
 
     let responseObject = { _message: id ? "Record updated" : "Record created" };
 
-    await transForge({
-      fields: field,
-      req,
-      body,
-      skipUndefined: id ? true : false,
-      model,
-    });
+    // console.log(permission?.Create?.beforeTransForge);
 
-    await beforeRequestPermissionCheck({
-      req,
-      body,
-      beforeReqFunction: permission?.Update?.beforeUpdate,
-      responseObject,
-    });
+    const transaction = await prisma.$transaction(
+      async (tx) => {
+        await beforeTransforgeCheck({
+          req,
+          body,
+          beforeTransForgeFunction: permission?.Update?.beforeTransForge,
+          responseObject,
+          tx,
+        });
+        await transForge({
+          fields: field,
+          req,
+          body,
+          skipUndefined: id ? true : false,
+          model,
+          tx,
+        });
 
-    let record = null;
+        await beforeRequestPermissionCheck({
+          req,
+          body,
+          beforeReqFunction: permission?.Update?.beforeUpdate,
+          responseObject,
+          tx,
+        });
 
-    if (!id) {
-      record = await prisma[model].create({
-        data: body,
-      });
-    } else {
-      const recordExist = await prisma[model].findUnique({
-        where: { id },
-      });
+        let record = null;
 
-      if (!recordExist) {
-        throw {
-          custom: true,
-          message: `Record with id ${id} not found in model ${model}`,
-        };
-      }
+        if (!id) {
+          record = await tx[model].create({
+            data: body,
+          });
+        } else {
+          const recordExist = await tx[model].findUnique({
+            where: { id },
+          });
 
-      record = await prisma[model].update({
-        where: {
-          id,
-        },
-        data: body,
-      });
-    }
+          if (!recordExist) {
+            throw {
+              custom: true,
+              message: `Record with id ${id} not found in model ${model}`,
+            };
+          }
 
-    responseObject = { ...responseObject, ...record };
-    await afterRequestPermissionCheck({
-      req,
-      record,
-      afterReqFunction: permission?.Update?.afterUpdate,
-      responseObject,
-    });
+          record = await tx[model].update({
+            where: {
+              id,
+            },
+            data: body,
+          });
+        }
+
+        responseObject = { ...responseObject, ...record };
+        await afterRequestPermissionCheck({
+          req,
+          tx,
+          record,
+          afterReqFunction: permission?.Update?.afterUpdate,
+          responseObject,
+        });
+      },
+      { timeout: 40000 },
+    );
 
     return res.status(200).json(responseObject);
   } catch (e) {
-    console.log(e);
     next(e);
   }
 }

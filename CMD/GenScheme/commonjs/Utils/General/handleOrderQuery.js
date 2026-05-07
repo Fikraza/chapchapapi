@@ -17,7 +17,7 @@ function handleOrderQuery({ orderBy, order = null }) {
     }
   } catch (e) {
     console.log("error in handle order query");
-    console.log(e);
+    //console.log(e);
   }
 }
 

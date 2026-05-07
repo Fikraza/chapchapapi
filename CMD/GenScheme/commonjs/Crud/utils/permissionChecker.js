@@ -20,14 +20,27 @@ function ifmethodNotAllowedThrowError({ permisionConfig, method }) {
   return true;
 }
 
+async function beforeTransforgeCheck(obj) {
+  if (typeof obj !== "object" || obj === null) {
+    return;
+  }
+  const { beforeTransForgeFunction, responseObject } = obj;
+
+  if (typeof beforeTransForgeFunction !== "function") {
+    return;
+  }
+  let newResponsePayload = await beforeTransForgeFunction(obj);
+  responseBuilder({ responseObject, newResponsePayload });
+}
+
 async function beforeRequestPermissionCheck(obj) {
   if (typeof obj !== "object" || obj === null) {
     return;
   }
   const { req, body, beforeReqFunction, responseObject } = obj;
   if (typeof beforeReqFunction !== "function") {
-    console.warn("beforeReqFunction is not a function");
-    console.log("skipping before request permission check");
+    // console.warn("beforeReqFunction is not a function");
+    // console.log("skipping before request permission check");
     return;
   }
 
@@ -51,6 +64,7 @@ async function afterRequestPermissionCheck(obj) {
 
 module.exports = {
   ifmethodNotAllowedThrowError,
+  beforeTransforgeCheck,
   beforeRequestPermissionCheck,
   afterRequestPermissionCheck,
 };

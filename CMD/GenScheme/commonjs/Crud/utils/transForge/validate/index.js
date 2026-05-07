@@ -7,6 +7,7 @@ const recordExists = require("./recordExists");
 const str = require("./str");
 const uuid = require("./uuid");
 const unique = require("./unique");
+const obj = require("./obj");
 
 module.exports = {
   bool,
@@ -18,4 +19,5 @@ module.exports = {
   str,
   uuid,
   unique,
+  obj,
 };

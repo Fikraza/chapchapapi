@@ -31,8 +31,10 @@ function getModel({ model }) {
       cwd,
       config.baseFolder,
       "Controller/Scheme/Models",
-      modelPath
+      modelPath,
     );
+
+    //console.log("MODEL DIR", modelDir);
 
     const modelObj = {};
 
@@ -42,6 +44,9 @@ function getModel({ model }) {
     const permissionPath = path.join(modelDir, "permission/index.js");
     const pdfPath = path.join(modelDir, "pdf/index.js");
     const searchPath = path.join(modelDir, "search/index.js");
+
+    //console.log("FIELD PATH", fieldPath);
+    //console.log("fs exist field path ", fs.existsSync(fieldPath));
 
     if (fs.existsSync(fieldPath)) {
       const field = JSON.parse(fs.readFileSync(fieldPath, "utf-8"));
@@ -70,8 +75,11 @@ function getModel({ model }) {
       modelObj.search = require(searchPath);
     }
 
+    //console.log("MODEL OBJ---->  ", modelObj);
+
     return modelObj;
   } catch (e) {
+    console.log("ERROR IN GET MODEL");
     console.log(e);
     return {};
   }

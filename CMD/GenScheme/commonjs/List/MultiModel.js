@@ -66,9 +66,7 @@ async function MultiModel(req, res, next) {
           });
         }
       },
-      {
-        timeout: 15000,
-      }
+      { timeout: 40000 },
     );
 
     return res.status(200).json({ ...responseObject, doc });

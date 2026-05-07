@@ -1,6 +1,6 @@
 const tweakFunctions = require("./tweak");
 
-async function doTweak({ tweaks, req, body, field }) {
+async function doTweak({ tweaks, req, body, field, model }) {
   if (typeof tweaks !== "object" || tweaks === null) {
     return;
   }
@@ -14,7 +14,7 @@ async function doTweak({ tweaks, req, body, field }) {
     if (typeof tweakFunc !== "function") {
       continue;
     }
-    await tweakFunc({ req, body, field, tweakObj });
+    await tweakFunc({ req, body, field, tweakObj, model });
   }
 }
 

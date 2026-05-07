@@ -16,12 +16,15 @@ async function Patch(req, res, next) {
     const { model } = req.params;
     const body = req.body;
 
+    const originalBody = { ...body };
+
     const id = body?.id;
 
     if (!id) {
       throw { custom: true, message: "Id required for patching" };
     }
 
+    req.record_id = id;
     delete body.id;
 
     if (!model) {
@@ -50,46 +53,55 @@ async function Patch(req, res, next) {
 
     //return res.status(200).json({ body });
 
-    await transForge({
-      fields: field,
-      req,
-      body,
-      skipUndefined: true,
-    });
-    await beforeRequestPermissionCheck({
-      req,
-      body,
-      beforeReqFunction: permission?.Patch?.beforePatch,
-      responseObject,
-    });
-
     let record = null;
 
-    const transaction = await prisma.$transaction(async (tx) => {
-      const recordExists = await tx[model].findUnique({
-        where: {
-          id,
-        },
-      });
+    const transaction = await prisma.$transaction(
+      async (tx) => {
+        await transForge({
+          fields: field,
+          req,
+          tx,
+          body,
+          skipUndefined: true,
+          originalBody,
+        });
+        await beforeRequestPermissionCheck({
+          req,
+          body,
+          originalBody,
+          tx,
+          beforeReqFunction: permission?.Patch?.beforePatch,
+          responseObject,
+        });
 
-      if (!recordExists) {
-        throw { custom: true, message: "Record to update does not exist" };
-      }
+        const recordExists = await tx[model].findUnique({
+          where: {
+            id,
+          },
+        });
 
-      record = await prisma[model].update({
-        where: {
-          id,
-        },
-        data: body,
-      });
-    });
-    responseObject = { ...responseObject, ...record };
-    await afterRequestPermissionCheck({
-      req,
-      record,
-      afterReqFunction: permission?.Patch?.afterPatch,
-      responseObject,
-    });
+        if (!recordExists) {
+          throw { custom: true, message: "Record to update does not exist" };
+        }
+
+        record = await prisma[model].update({
+          where: {
+            id,
+          },
+          data: body,
+        });
+        responseObject = { ...responseObject, ...record };
+        await afterRequestPermissionCheck({
+          tx,
+          req,
+          record,
+          afterReqFunction: permission?.Patch?.afterPatch,
+          responseObject,
+          originalBody,
+        });
+      },
+      { timeout: 40000 },
+    );
 
     return res.status(200).json({ responseObject, body });
   } catch (e) {

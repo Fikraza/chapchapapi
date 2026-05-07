@@ -7,6 +7,8 @@ const int = require("./int");
 const lowerCase = require("./lowerCase");
 const str = require("./str");
 const upperCase = require("./upperCase");
+const bigint = require("./bigint");
+const number = require("./number");
 
 module.exports = {
   bool,
@@ -18,4 +20,6 @@ module.exports = {
   lowerCase,
   str,
   upperCase,
+  bigint,
+  number,
 };

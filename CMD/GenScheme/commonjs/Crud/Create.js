@@ -4,6 +4,7 @@ const getModel = require("../Utils/CLI/getModel");
 const {
   ifmethodNotAllowedThrowError,
   beforeRequestPermissionCheck,
+  beforeTransforgeCheck,
   afterRequestPermissionCheck,
 } = require("./utils/permissionChecker");
 
@@ -37,37 +38,51 @@ async function Create(req, res, next) {
       throw { custom: true, message: "Field for model not found" };
     }
 
-    if (body?.id) {
+    //update chap chap api
+    if ("id" in body) {
       delete body.id;
     }
+    //console.log("Body is", body);
     ifmethodNotAllowedThrowError({ permisionConfig, method: "GET" });
     pruneBodyByFields({ body, field });
 
     //return res.status(200).json({ body });
-
     let responseObject = { _message: "Record created" };
+    const transaction = await prisma.$transaction(
+      async (tx) => {
+        await beforeTransforgeCheck({
+          req,
+          body,
+          tx,
+          beforeTransForgeFunction: permission?.Create?.beforeTransForge,
+          responseObject,
+        });
+        await transForge({ fields: field, req, body, model });
 
-    await transForge({ fields: field, req, body, model });
+        await beforeRequestPermissionCheck({
+          req,
+          body,
+          tx,
+          beforeReqFunction: permission?.Create?.beforeCreate,
+          responseObject,
+        });
 
-    await beforeRequestPermissionCheck({
-      req,
-      body,
-      beforeReqFunction: permission?.Create?.beforeCreate,
-      responseObject,
-    });
+        const record = await tx[model].create({
+          data: body,
+        });
 
-    const record = await prisma[model].create({
-      data: body,
-    });
+        responseObject = { ...responseObject, ...record };
 
-    responseObject = { ...responseObject, ...record };
-
-    await afterRequestPermissionCheck({
-      req,
-      record,
-      afterReqFunction: permission?.Create?.afterCreate,
-      responseObject,
-    });
+        await afterRequestPermissionCheck({
+          req,
+          record,
+          tx,
+          afterReqFunction: permission?.Create?.afterCreate,
+          responseObject,
+        });
+      },
+      { timeout: 40000 },
+    );
 
     return res.status(200).json(responseObject);
   } catch (e) {

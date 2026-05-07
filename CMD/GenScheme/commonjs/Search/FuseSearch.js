@@ -28,6 +28,7 @@ async function FuseSearch(req, res, next) {
     }
 
     const modelObj = getModel({ model });
+
     if (!modelObj) {
       throw { custom: true, message: "Model not supported for get" };
     }

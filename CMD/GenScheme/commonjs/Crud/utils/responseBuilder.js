@@ -1,21 +1,70 @@
-const { mergeIfObject } = require("./objectUtils");
+const responseBuilder = require("./responseBuilder");
 
-function buildResponse({ _message, data, beforeRes, afterRes }) {
-  let response = {};
+function ifmethodNotAllowedThrowError({ permisionConfig, method }) {
+  let allowedMethods = permisionConfig?.allowedMethods;
 
-  if (_message) {
-    response._message = _message;
-  }
-  // Include data only if it's a plain object
-  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
-    response = { ...response, ...data };
+  if (!Array.isArray(allowedMethods)) {
+    console.warn("allowedMethods should be an array");
+    console.log("skipping method check");
+    return true;
   }
 
-  // Merge before/after permission responses (if valid)
-  response = mergeIfObject(response, beforeRes);
-  response = mergeIfObject(response, afterRes);
+  let found = allowedMethods.find(
+    (m) => m.toLowerCase() === method.toLowerCase(),
+  );
 
-  return response;
+  if (!found) {
+    throw { custom: true, message: "Method not allowed", status: 401 };
+  }
+
+  return true;
 }
 
-module.exports = buildResponse;
+async function beforeTransforgeCheck(obj) {
+  if (typeof obj !== "object" || obj === null) {
+    return;
+  }
+  const { beforeTransForgeFunction, responseObject } = obj;
+
+  if (typeof beforeTransForgeFunction !== "function") {
+    return;
+  }
+  let newResponsePayload = await beforeTransForgeFunction(obj);
+  responseBuilder({ responseObject, newResponsePayload });
+}
+
+async function beforeRequestPermissionCheck(obj) {
+  if (typeof obj !== "object" || obj === null) {
+    return;
+  }
+  const { req, body, beforeReqFunction, responseObject } = obj;
+  if (typeof beforeReqFunction !== "function") {
+    // console.warn("beforeReqFunction is not a function");
+    // console.log("skipping before request permission check");
+    return;
+  }
+
+  let newResponsePayload = await beforeReqFunction(obj);
+
+  responseBuilder({ responseObject, newResponsePayload });
+}
+
+async function afterRequestPermissionCheck(obj) {
+  const { req, record, afterReqFunction, responseObject } = obj;
+  if (typeof afterReqFunction !== "function") {
+    console.warn("beforeReqFunction is not a function");
+    console.log("skipping before request permission check");
+    return;
+  }
+
+  let newResponsePayload = await afterReqFunction(obj);
+
+  responseBuilder({ responseObject, newResponsePayload });
+}
+
+module.exports = {
+  ifmethodNotAllowedThrowError,
+  beforeTransforgeCheck,
+  beforeRequestPermissionCheck,
+  afterRequestPermissionCheck,
+};

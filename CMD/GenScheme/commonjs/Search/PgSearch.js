@@ -13,7 +13,7 @@ async function PgSearch(req, res, next) {
   try {
     // code here
     const { model } = req.params;
-    const { search, limit = 10 } = req.query;
+    const { search, limit = 100 } = req.query;
 
     const where = {};
     if (!parseInt(limit)) {
@@ -36,7 +36,7 @@ async function PgSearch(req, res, next) {
     ifmethodNotAllowedThrowError({ permisionConfig, method: "GET" });
 
     const pgSearch = modelObj?.search?.Pg;
-    // console.log(pgSearch);
+    //console.log(pgSearch);
 
     if (!pgSearch) {
       throw {
@@ -54,12 +54,14 @@ async function PgSearch(req, res, next) {
       };
     }
 
+    //console.log(await pgTrgmFunction({ search, limit }));
+
     const { query, params } = await pgTrgmFunction({ search, limit });
 
     const searchResults = await prisma.$queryRawUnsafe(query, ...params);
 
     const ignoreInFilters = ["page", "limit", "order", "_meta_info", "search"];
-    QueryFilter({ where, query, ignoreInFilters });
+    QueryFilter({ where, query: req.query, ignoreInFilters });
 
     await beforeRequestPermissionCheck({
       req,
@@ -82,6 +84,7 @@ async function PgSearch(req, res, next) {
     let includedData = await prisma[model].findMany({
       where: {
         id: { in: ids },
+        ...where,
       },
       include,
     });

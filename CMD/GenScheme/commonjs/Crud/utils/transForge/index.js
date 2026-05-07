@@ -39,7 +39,8 @@ async function transForge(obj) {
     } else {
       await doValidate({ validation, req, body, field: fieldName, model });
     }
-    await doTweak({ tweaks, req, body, field: fieldName });
+
+    await doTweak({ tweaks, req, body, field: fieldName, model, isRequired });
   }
 }
 

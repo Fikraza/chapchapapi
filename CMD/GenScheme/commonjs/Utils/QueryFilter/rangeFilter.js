@@ -16,6 +16,10 @@ function rangeTransform({ queryFieldName, where, queryFieldValue }) {
     where[filterName] = {};
   }
 
+  if (!transFormValue) {
+    return;
+  }
+
   if (minOrMax === "_min") {
     where[filterName].gte = transFormValue;
     return;

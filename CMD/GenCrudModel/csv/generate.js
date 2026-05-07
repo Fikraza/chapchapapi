@@ -1,11 +1,17 @@
-async function beforeGenerate({ req }) {
+async function beforeGenerate({ req, tx }) {
   console.log("Before csv generate");
 }
-async function afterGenerate({ req }) {
+async function afterGenerate({ req, tx }) {
   console.log("After csv generate");
 }
 
-function singleRecordCallback({ record, escapeCsvValue, index, pageNumber }) {
+function singleRecordCallback({
+  tx,
+  record,
+  escapeCsvValue,
+  index,
+  pageNumber,
+}) {
   // console.log("record ", record);
   // console.log("index ", index);
   // console.log("page Number ", pageNumber);
