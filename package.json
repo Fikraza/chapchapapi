@@ -1,5 +1,5 @@
 {
-  "name": "chapchapapi",
+  "name": "@arthur-codex/chapchapapi",
   "version": "2.0.1",
   "description": "A Node.js CLI tool for automating CRUD, search, pagination, and CSV endpoints in Prisma + Express projects.",
   "bin": {
