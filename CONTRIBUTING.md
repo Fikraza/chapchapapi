@@ -137,7 +137,55 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Fikraz
 <!-- TODO
 include Setup of env, IDE and typical getting started instructions?
 
+
 -->
+
+#### Local Development Setup
+
+1. **Fork and clone the repository:**
+   ```bash
+   git clone https://github.com<your-username>/chapchapapi.git
+   cd chapchapapi
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Register the CLI globally using `npm link`:**
+   This creates a local symbolic link so any edits you make to `chapchapapi` are immediately available when running the CLI on your machine.
+   ```bash
+   npm link
+   ```
+
+---
+
+#### Testing Your Changes Locally
+
+Because `chapchapapi` is a CLI code generator, you should test your changes inside a separate Express + Prisma project before opening a Pull Request.
+
+Step 1: Link `chapchapapi` to a Test Project
+Navigate to an existing Express + Prisma project (or create a fresh test folder with a valid `schema.prisma` file) and link your local package:
+```bash
+cd /path/to/your-test-project
+npm link chapchapapi
+```
+
+Step 2: Run the Generator
+Run the CLI initialization command inside your test project to generate the folder structure, routes, and controllers from your local build:
+```bash
+chapchapapi init
+```
+
+#### Submitting a Pull Request
+
+ **Create a descriptive branch from `main`:**
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feat/your-feature-name
+   ```
 
 ### Improving The Documentation
 <!-- TODO
