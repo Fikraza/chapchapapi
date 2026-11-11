@@ -3,11 +3,11 @@ const { getUrlObj } = require("./../util");
 function crud({ collection, model, modelObj = {} }) {
   const item = [];
   const folder = {
-    name: "abcd",
+    name: "api",
     item,
   };
 
-  const url = `abcd/${model}`;
+  const url = `api/${model}`;
 
   const field = modelObj?.field || {};
   const fieldKeys = Object.keys(field);

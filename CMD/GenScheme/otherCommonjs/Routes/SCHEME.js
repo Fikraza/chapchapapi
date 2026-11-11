@@ -23,11 +23,11 @@ const {
 } = require("../Middleware/Multer");
 
 // ✏️ CRUD Generic(Add Browse Change Delete)
-router.post("/abcd/:model", Create);
-router.get("/abcd/:model", Read);
-router.patch("/abcd/:model", Patch);
-router.put("/abcd/:model", Update);
-router.delete("/abcd/:model", Delete);
+router.post("/api/:model", Create);
+router.get("/api/:model", Read);
+router.patch("/api/:model", Patch);
+router.put("/api/:model", Update);
+router.delete("/api/:model", Delete);
 
 //List Models
 router.get("/list/:model", List.PaginationList);

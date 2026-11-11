@@ -3,11 +3,11 @@ const { getUrlObj } = require("./../util");
 function crud(item) {
   const newItem = [];
   const folder = {
-    name: "abcd",
+    name: "api",
     item: newItem,
   };
 
-  const url = "abcd/model_name";
+  const url = "api/model_name";
 
   newItem.push({
     name: "Add",
